@@ -1,0 +1,269 @@
+@(ctrl : LexicalAnalysisController, supportedLanguageRecognizerLocales: Iterable[String], supportedLanguageDetectorLocales: Iterable[String], supportedSnowballLocales: Iterable[String],supportedHFSTBaseformLocales: Iterable[String],supportedHFSTAnalyzeLocales: Iterable[String],supportedHFSTInflectionLocales: Iterable[String],supportedHFSTHyphenationLocales: Iterable[String])
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>SeCo Lexical Analysis Services</title>
+    <link rel='stylesheet' href='@routes.WebJarAssets.at(WebJarAssets.locate(helper.assetMode("bootstrap.css")("bootstrap.min.css")()))'>
+    <link rel='stylesheet' href='@routes.Assets.at("stylesheets/"+helper.assetMode("index.css")("index.min.css")())'>
+    <script type='text/javascript' src='@routes.LexicalAnalysisController.javascriptRoutes'></script>
+    <script type='text/javascript' src='@routes.WebJarAssets.at(WebJarAssets.locate(helper.assetMode("jquery.js")("jquery.min.js")()))'></script>
+    <script type='text/javascript' src='@routes.WebJarAssets.at(WebJarAssets.locate(helper.assetMode("bootstrap.js")("bootstrap.min.js")()))'></script>
+    <script type='text/javascript' src='@routes.WebJarAssets.at(WebJarAssets.locate(helper.assetMode("underscore.js")("underscore-min.js")()))'></script>
+    <script type='text/javascript' src='@routes.WebJarAssets.at(WebJarAssets.locate("1.2.0-rc.3/"+helper.assetMode("angular.js")("angular.min.js")()))'></script>
+    <script type='text/javascript' src='@routes.Assets.at("javascripts/"+helper.assetMode("playroutes.js")("playroutes.min.js")())'></script>
+    <script type='text/javascript' src='@routes.Assets.at("javascripts/"+helper.assetMode("index.js")("index.min.js")())'></script>
+
+</head>
+
+<body data-spy="scroll" data-target="#nav">
+<div id="nav" class="navbar navbar-default navbar-fixed-top">
+    <div class="navbar-header">
+        <span class="navbar-brand"><a href="http://www.seco.tkk.fi/"><img src='@routes.Assets.at("images/secologo-small.png")'></a> <a id="titleLink" href="#">Lexical Analysis Services</a></span>
+    </div>
+    <!-- Collect the nav links, forms, and other content for toggling -->
+    <div class="collapse navbar-collapse navbar-ex1-collapse">
+        <ul class="nav navbar-nav">
+            <li><a href="#language_recognition">Recognition</a></li>
+            <li><a href="#lemmatization">Lemmatization</a></li>
+            <li><a href="#morphological_analysis">Analysis</a>
+            <li><a href="#form_generation">Inflection</a></li>
+            <li><a href="#hyphenation">Hyphenation</a></li>
+        </ul>
+    </div>
+</div>
+<div class="container" ng-app="index">
+
+        <div class="jumbotron">
+            <div class="pull-left">
+            <a href="http://www.seco.tkk.fi/"><img class="img-responsive" style="margin-right:20px;margin-top:30px" src='@routes.Assets.at("images/secologo.png")'></a>
+            </div>
+            <h1><a href="http://www.seco.tkk.fi/">SeCo</a> Lexical Analysis Services</h1>
+            <p>
+                We provide the following JSON-returning Web Services:
+            </p>
+            <ul>
+                <li><a href="#language_recognition">Language Recognition</a></li>
+                <li><a href="#lemmatization">Lemmatization</a></li>
+                <li><a href="#morphological_analysis">Morphological Analysis</a></li>
+                <li><a href="#form_generation">Inflected Form Generation</a></li>
+                <li><a href="#hyphenation">Hyphenation</a></li>
+            </ul>
+            <p>
+            The tools backing these services are mostly not originally our own, but we've wrapped them for your convenience. For specifics, see the details of each service.
+            For general questions about this service, contact <a href="mailto:eetu.makela@@aalto.fi">eetu.makela@@aalto.fi</a>.
+            </p>
+        </div>
+
+        <div class="anchor" id="language_recognition"></div>
+		<div ng-controller="IdentifyCtrl">
+    		<div class="page-header"><h1>Language Recognition</h1></div>
+            <p>
+                Tries to recognize the language of an input. Call with e.g.
+                <a href='@controllers.routes.LexicalAnalysisController.identifyGET(Some("The quick brown fox jumps over the lazy dog"),List.empty)'>@controllers.routes.LexicalAnalysisController.identifyGET(Some("The quick brown fox jumps over the lazy dog"),List.empty)</a><br />
+                or with a list of possible locales, e.g. <a href='@controllers.routes.LexicalAnalysisController.identifyGET(Some("The quick brown fox jumps over the lazy dog"),List("fi","en","sv"))'>@controllers.routes.LexicalAnalysisController.identifyGET(Some("The quick brown fox jumps over the lazy dog"),List("fi","en","sv"))</a><br />
+                Also available using HTTP POST with parameters given either as form-urlencoded or JSON. For intensive use, there is also a JSON-understanding <a href="http://en.wikipedia.org/wiki/WebSocket">WebSocket</a>-version at <a href="@controllers.routes.LexicalAnalysisController.identifyWS">@controllers.routes.LexicalAnalysisController.identifyWS</a>. All methods are <a href="http://en.wikipedia.org/wiki/Cross-origin_resource_sharing">CORS</a>-enabled.<br />
+
+                Returns results as JSON, e.g.:
+                <pre class="pre-scrollable">@ctrl.identify(Some("The quick brown fox jumps over the lazy dog"),List.empty).right.get.right.get</pre>
+                When called without parameters but with an Accept header other than text/html, returns the supported locales as JSON, e.g.:
+                <pre class="pre-scrollable">@ctrl.identify(None,Seq.empty).left.get._1</pre>
+            </p>
+            <p>
+                In total, the service supports @((supportedLanguageDetectorLocales ++ supportedLanguageRecognizerLocales ++ supportedHFSTAnalyzeLocales.map(_.toString)).toSeq.sorted.distinct.size) locales, combining results from three sources:
+                <ol>
+                    <li>The <a href="https://code.google.com/p/language-detection/">langdetect</a> library (locales @supportedLanguageDetectorLocales.toSeq.sorted.mkString(", ")),</li>
+                    <li>custom code based on the list of cues at the <a href="http://en.wikipedia.org/wiki/Wikipedia:Language_recognition_chart">Wikipedia language recognition chart</a> (locales @supportedLanguageRecognizerLocales.toSeq.sorted.mkString(", ")), and</li>
+                    <li>finite state transducers provided by the <a href="http://hfst.sourceforge.net/">HFST</a>, <a href="https://code.google.com/p/omorfi/">Omorfi</a> and <a href="http://giellatekno.uit.no/">Giellatekno</a> projects (locales @supportedHFSTAnalyzeLocales.toSeq.sorted.mkString(", "))</li>
+                </ol>
+
+                Where multiple sources are available for a language, they
+                seem to complement each other nicely.  The probabilistic
+                langdetect library generally gives good results, but can
+                give incorrect results on short strings.  The finite state
+                transducers on the other hand reliably recognize even single
+                words as belonging to a language, but may have problems
+                discerning between closely related languages when sentences
+                contain many compound, loan or slang words.  The custom code
+                finally sits method-wise between the other two, breaking
+                ties between them.
+            </p>
+
+            <div class="form-group">
+                <label class="control-label">Test:</label> (updates dynamically)
+                <div class="controls">
+                    <textarea name="text" class="form-control" ng-model="text" rows="5"></textarea>
+                </div>
+                <div class="alert alert-success" ng-show="guessedLang && !errorStatus">Guessed language: {{guessedLang}}</div>
+                <div class="alert alert-danger" ng-show="errorStatus">Service returned error {{errorStatus}}:<br />{{error}}</div>
+            </div>
+		</div>
+
+        <div id="lemmatization" class="anchor"></div>
+
+        <div ng-controller="LemmatizeCtrl">
+            <div class="page-header"><h1>Lemmatization</h1></div>
+            <p>
+                Lemmatizes the input into its base form. <br />
+                Call with e.g. <a href='@controllers.routes.LexicalAnalysisController.baseformGET(Some("Albert osti fagotin ja töräytti puhkuvan melodian."),Some(new java.util.Locale("fi")))'>@controllers.routes.LexicalAnalysisController.baseformGET(Some("Albert osti fagotin ja töräytti puhkuvan melodian."),Some(new java.util.Locale("fi")))</a><br />
+                or just <a href='@controllers.routes.LexicalAnalysisController.baseformGET(Some("The quick brown fox jumps over the lazy dog"),None)'>@controllers.routes.LexicalAnalysisController.baseformGET(Some("The quick brown fox jumps over the lazy dog"),None)</a> to guess locale.<br />
+                Also available using HTTP POST with parameters given either as form-urlencoded or JSON. For intensive use, there is also a JSON-understanding <a href="http://en.wikipedia.org/wiki/WebSocket">WebSocket</a>-version at <a href="@controllers.routes.LexicalAnalysisController.baseformWS">@controllers.routes.LexicalAnalysisController.baseformWS</a>. All methods are <a href="http://en.wikipedia.org/wiki/Cross-origin_resource_sharing">CORS</a>-enabled.<br />
+                Returns results as JSON (e.g. <code>@ctrl.baseform(Some("Albert osti fagotin ja töräytti puhkuvan melodian."),Some(new java.util.Locale("fi"))).right.get.right.get</code> or <code>@ctrl.baseform(Some("The quick brown fox jumps over the lazy dog"),None).right.get.right.get</code>)<br />
+                When called without parameters but with an Accept header other than text/html, returns the @((supportedSnowballLocales++supportedHFSTBaseformLocales).toSeq.distinct.size) supported locales as JSON.
+            </p>
+
+            <p>
+                Uses finite state transducers provided by the <a href="http://hfst.sourceforge.net/">HFST</a>, <a href="https://code.google.com/p/omorfi/">Omorfi</a> and <a href="http://giellatekno.uit.no/">Giellatekno</a> projects where available (locales @supportedHFSTBaseformLocales.toSeq.sorted.mkString(", ")). Note that the quality and scope of the lemmatization varies wildly between languages.<br />
+                <a href="http://snowball.tartarus.org/">Snowball stemmers</a> are used for locales @((supportedSnowballLocales.toSeq diff supportedHFSTBaseformLocales.toSeq).sorted.mkString(", ")) (not used: @((supportedSnowballLocales.toSeq intersect supportedHFSTBaseformLocales.toSeq).sorted.mkString(", ")))
+            </p>
+
+
+            <div class="form-group">
+                <label class="control-label">Test:</label> (updates dynamically)
+                <div class="controls">
+                   <textarea name="text" class="form-control" ng-model="text" rows="5"></textarea>
+                </div>
+			    <div class="alert alert-success" ng-show="baseform && !errorStatus">Lemmatized: {{baseform}}</div>
+                <div class="alert alert-danger" ng-show="errorStatus">Service returned error {{errorStatus}}:<br />{{error}}</div>
+			</div>
+
+            <div class="form-group">
+                <label class="control-label">Locale:</label>
+                <div class="controls">
+                    <select name="locale" class="form-control" ng-model="locale">
+                        <option selected="" value="">detect</option>
+                    @for(locale <- (supportedSnowballLocales.toSeq ++ supportedHFSTBaseformLocales.toSeq).distinct.sorted) {
+                        <option value="@locale">@locale</option>
+                    }
+                    </select>
+                </div>
+            </div>
+	    </div>
+
+        <div class="anchor" id="morphological_analysis"></div>
+
+        <div ng-controller="AnalyzeCtrl">
+           <div class="page-header"><h1>Morphological Analysis</h1></div>
+           <p>
+              Gives a morphological analysis of the text. Call with e.g. <a href='@controllers.routes.LexicalAnalysisController.analyzeGET(Some("Albert osti"),Some(new java.util.Locale("fi")))'>@controllers.routes.LexicalAnalysisController.analyzeGET(Some("Albert osti"),Some(new java.util.Locale("fi")))</a><br />
+               or just <a href='@controllers.routes.LexicalAnalysisController.analyzeGET(Some("Bier bitte"),None)'>@controllers.routes.LexicalAnalysisController.analyzeGET(Some("Bier bitte"),None)</a> to guess locale.<br />
+                Also available using HTTP POST with parameters given either as form-urlencoded or JSON. For intensive use, there is also a JSON-understanding <a href="http://en.wikipedia.org/wiki/WebSocket">WebSocket</a>-version at <a href="@controllers.routes.LexicalAnalysisController.analyzeWS">@controllers.routes.LexicalAnalysisController.analyzeWS</a>. All methods are <a href="http://en.wikipedia.org/wiki/Cross-origin_resource_sharing">CORS</a>-enabled.<br />
+               Returns results as JSON, e.g.:
+               <pre class="pre-scrollable">@play.api.libs.json.Json.prettyPrint(ctrl.analyze(Some("Albert osti"),Some(new java.util.Locale("fi"))).right.get.right.get)</pre> or
+               <pre class="pre-scrollable">@play.api.libs.json.Json.prettyPrint(ctrl.analyze(Some("Bier bitte"),None).right.get.right.get)</pre>
+               When called without parameters but with an Accept header other than text/html, returns the @(supportedHFSTAnalyzeLocales.size) supported locales as JSON (e.g. <code>@ctrl.analyze(None,None).left.get._1</code>).
+           </p>
+           <p>
+               Uses finite state transducers provided by the <a href="http://hfst.sourceforge.net/">HFST</a>, <a href="https://code.google.com/p/omorfi/">Omorfi</a> and <a href="http://giellatekno.uit.no/">Giellatekno</a> projects. Note that the quality and scope of analysis as well as tags returned vary wildly between languages.
+           </p>
+            <div class="form-group">
+                <label class="control-label">Test:</label> (updates dynamically)
+                <div class="controls">
+                    <textarea name="text" class="form-control" ng-model="text" rows="5"></textarea>
+                </div>
+                <div class="alert alert-success" ng-show="analysis && !errorStatus">Analysis: {{analysis}}</div>
+                <div class="alert alert-danger" ng-show="errorStatus">Service returned error {{errorStatus}}:<br />{{error}}</div>
+            </div>
+
+            <div class="form-group">
+                <label class="control-label">Locale:</label>
+                <div class="controls">
+                    <select name="locale" class="form-control" ng-model="locale">
+                        <option value="">detect</option>
+                        @for(locale <- supportedHFSTAnalyzeLocales.toSeq.distinct.sorted) {
+                        <option value="@locale">@locale</option>
+                        }
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="anchor" id="form_generation"></div>
+
+        <div ng-controller="InflectionCtrl">
+            <div class="page-header"><h1>Inflected Form Generation</h1></div>
+            <p>
+                Transforms the text given a set of inflection forms, by default also converting words not matching the inflection forms to their base form. Call with e.g. <a href='@controllers.routes.LexicalAnalysisController.inflectGET(Some("Albert osti fagotin"),List("V N Nom Sg","N Nom Pl"),true,Some(new java.util.Locale("fi")))'>@controllers.routes.LexicalAnalysisController.inflectGET(Some("Albert osti fagotin"),List("V N Nom Sg","N Nom Pl"),true,Some(new java.util.Locale("fi")))</a><br />
+                or <a href='@controllers.routes.LexicalAnalysisController.inflectGET(Some("Albert osti fagotin"),List("V N Nom Sg","N Nom Pl"),false,Some(new java.util.Locale("fi")))'>@controllers.routes.LexicalAnalysisController.inflectGET(Some("Albert osti fagotin"),List("V N Nom Sg","N Nom Pl"),false,Some(new java.util.Locale("fi")))</a><br />
+                Also available using HTTP POST with parameters given either as form-urlencoded or JSON. For intensive use, there is also a JSON-understanding <a href="http://en.wikipedia.org/wiki/WebSocket">WebSocket</a>-version at <a href="@controllers.routes.LexicalAnalysisController.inflectWS">@controllers.routes.LexicalAnalysisController.inflectWS</a>. All methods are <a href="http://en.wikipedia.org/wiki/Cross-origin_resource_sharing">CORS</a>-enabled.<br />
+                Returns results as JSON (e.g. <code>@ctrl.inflect(Some("Albert osti fagotin"),List("V N Nom Sg","N Nom Pl"),true,Some(new java.util.Locale("fi"))).right.get.right.get</code>)<br />
+                When called without parameters but with an Accept header other than text/html, returns the @(supportedHFSTInflectionLocales.size) supported locales as JSON (e.g. <code>@ctrl.inflect(None,Seq.empty,false,None).left.get._1</code>).
+            </p>
+            <p>
+                Uses finite state transducers provided by the <a href="http://hfst.sourceforge.net/">HFST</a>, <a href="https://code.google.com/p/omorfi/">Omorfi</a> and <a href="http://giellatekno.uit.no/">Giellatekno</a> projects. Note that the inflection form syntaxes differ wildly between languages.
+            </p>
+            <div class="form-group">
+                <label class="control-label">Test:</label> (updates dynamically)
+                <div class="controls">
+                    <textarea name="text" class="form-control" ng-model="text" rows="5"></textarea>
+                </div>
+                <div class="alert alert-success" ng-show="inflection && !errorStatus">Inflected: {{inflection}}</div>
+                <div class="alert alert-danger" ng-show="errorStatus">Service returned error {{errorStatus}}:<br />{{error}}</div>
+            </div>
+
+            <div class="form-group">
+                <label class="control-label">Desired Inflection Forms:</label>
+                <div class="controls">
+                    <input type="text" name="forms" class="form-control" ng-model="forms" />
+                </div>
+            </div>
+
+            <div class="checkbox">
+                <label class="control-label"><input type="checkbox" name="baseform" ng-model="baseform" />baseform?</label>
+            </div>
+
+            <div class="form-group">
+                <label class="control-label">Locale:</label>
+                <div class="controls">
+                    <select name="locale" class="form-control" ng-model="locale">
+                        <option value="">detect</option>
+                        @for(locale <- supportedHFSTInflectionLocales.toSeq.distinct.sorted) {
+                        <option value="@locale">@locale</option>
+                        }
+                    </select>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="anchor" id="hyphenation"></div>
+
+        <div ng-controller="HyphenationCtrl">
+            <div class="page-header"><h1>Hyphenation</h1></div>
+            <p>
+                Hyphenates the given text. Call with e.g. <a href='@controllers.routes.LexicalAnalysisController.hyphenateGET(Some("Albert osti fagotin ja töräytti puhkuvan melodian."),Some(new java.util.Locale("fi")))'>@controllers.routes.LexicalAnalysisController.hyphenateGET(Some("Albert osti fagotin ja töräytti puhkuvan melodian."),Some(new java.util.Locale("fi")))</a><br />
+                or just <a href='@controllers.routes.LexicalAnalysisController.hyphenateGET(Some("ein Bier bitte"),None)'>@controllers.routes.LexicalAnalysisController.hyphenateGET(Some("ein Bier bitte"),None)</a> to guess locale.<br />
+                Also available using HTTP POST with parameters given either as form-urlencoded or JSON. For intensive use, there is also a JSON-understanding <a href="http://en.wikipedia.org/wiki/WebSocket">WebSocket</a>-version at <a href="@controllers.routes.LexicalAnalysisController.hyphenateWS">@controllers.routes.LexicalAnalysisController.hyphenateWS</a>. All methods are <a href="http://en.wikipedia.org/wiki/Cross-origin_resource_sharing">CORS</a>-enabled.<br />
+                Returns results as JSON (e.g. <code>@ctrl.hyphenate(Some("Albert osti fagotin ja töräytti puhkuvan melodian."),Some(new java.util.Locale("fi"))).right.get.right.get</code> or <code>@ctrl.hyphenate(Some("ein Bier bitte"),None).right.get.right.get</code>)<br />
+                When called without parameters but with an Accept header other than text/html, returns the @(supportedHFSTHyphenationLocales.size) supported locales as JSON, e.g.:
+                <pre class="pre-scrollable">@ctrl.hyphenate(None,None).left.get._1</pre>
+            </p>
+            <p>
+                Uses finite state transducers provided by the <a href="http://hfst.sourceforge.net/">HFST</a>, <a href="https://code.google.com/p/omorfi/">Omorfi</a> and <a href="http://giellatekno.uit.no/">Giellatekno</a> projects. Those provided by HFST have been automatically translated from the TeX CTAN distribution's hyphenation rulesets.
+            </p>
+            <div class="form-group">
+                <label class="control-label">Test:</label> (updates dynamically)
+                <div class="controls">
+                    <textarea name="text" class="form-control" ng-model="text" rows="5"></textarea>
+                </div>
+                <div class="alert alert-success" ng-show="hyphenation && !errorStatus">hyphenated: {{hyphenation}}</div>
+                <div class="alert alert-danger" ng-show="errorStatus">Service returned error {{errorStatus}}:<br />{{error}}</div>
+            </div>
+
+            <div class="form-group">
+                <label class="control-label">Locale:</label>
+                <div class="controls">
+                    <select name="locale" class="form-control" ng-model="locale">
+                        <option value="">detect</option>
+                        @for(locale <- supportedHFSTHyphenationLocales.toSeq.distinct.sorted) {
+                        <option value="@locale">@locale</option>
+                        }
+                    </select>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+</body>
+</html>
