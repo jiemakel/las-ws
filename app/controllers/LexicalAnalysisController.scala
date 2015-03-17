@@ -14,23 +14,22 @@ import fi.seco.lexical.SnowballLexicalAnalysisService
 import scala.collection.convert.WrapAsScala._
 import scala.collection.convert.WrapAsJava._
 import java.util.Locale
-
 import play.api.libs.json.Writes
 import fi.seco.lexical.hfst.HFSTLexicalAnalysisService.WordToResults
 import scala.Some
 import scala.util.Try
-import play.api.mvc.SimpleResult
+import play.api.mvc.Result
 import java.util
 import services.lexicalanalysis.LanguageDetector
 import play.api.libs.iteratee.{Iteratee, Concurrent}
-
 import scala.concurrent.ExecutionContext.Implicits.global
+import fi.seco.lexical.combined.CombinedLexicalAnalysisService
 
 /**
  * @author jiemakel
  *
  */
-class LexicalAnalysisController(las: CompoundLexicalAnalysisService, hfstlas: HFSTLexicalAnalysisService, snowballlas: SnowballLexicalAnalysisService) extends Controller {
+class LexicalAnalysisController(las: CompoundLexicalAnalysisService, hfstlas: CombinedLexicalAnalysisService, snowballlas: SnowballLexicalAnalysisService) extends Controller {
 
   def CORSAction(f: Request[AnyContent] => Result): Action[AnyContent] = {
     Action { request =>
@@ -52,7 +51,7 @@ class LexicalAnalysisController(las: CompoundLexicalAnalysisService, hfstlas: HF
     Ok(views.html.index(this,LanguageRecognizer.getAvailableLanguages, LanguageDetector.supportedLanguages, snowballlas.getSupportedBaseformLocales.map(_.toString), hfstlas.getSupportedBaseformLocales.map(_.toString), hfstlas.getSupportedAnalyzeLocales.map(_.toString),hfstlas.getSupportedInflectionLocales.map(_.toString),hfstlas.getSupportedHyphenationLocales.map(_.toString) ))
   }
 
-  implicit def toResponse(res : Either[(JsValue, String),Either[String,JsValue]])(implicit request : Request[AnyContent]) : SimpleResult = {
+  implicit def toResponse(res : Either[(JsValue, String),Either[String,JsValue]])(implicit request : Request[AnyContent]) : Result = {
     res match {
       case Left(x) =>
         if (Accepts.Html.unapply(request)) Redirect(x._2)

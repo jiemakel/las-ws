@@ -21,3 +21,4 @@ activator.bat
 activator
 activator-launch-*.jar
 activator-*-shim.sbt
+/bin/
