@@ -43,6 +43,25 @@ angular.module('index',['play.routing'])
       if locale=='' then locale=null
       playRoutes.controllers.LexicalAnalysisController.analyzeGET($scope.text,locale).get().success((data) ->
         $scope.analysis=data
+        dta = []
+        for word,index in data
+        	da = null
+        	cw = Number.MAX_VALUE
+        	for analysis in word.analysis when analysis.globalTags['HEAD']? && analysis.weight<cw
+        	    cw=analysis.weight
+        	    da = {
+        	       dephead:analysis.globalTags['HEAD'][0]
+        	       deprel:analysis.globalTags['DEPREL'][0]
+        	       pos:analysis.wordParts[analysis.wordParts.length-1].tags['POS'][0]
+        	       word:word.word
+        	       data:word
+        	       ref:""+(index+1)
+        	    }
+        	if da!=null then dta.push(da)
+        draw_deptree(dta,'depanalysis',(data) -> if (data.data?.data?) 
+          $scope.analysis=[data.data.data]
+          $scope.$apply()
+        );
       ).error((data,status) ->
         if (status==0)
           $scope.errorStatus = 503
