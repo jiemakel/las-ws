@@ -36,7 +36,7 @@ angular.module('index',['play.routing'])
     ,1000))
   )
   .controller('AnalyzeCtrl', ($scope, playRoutes) ->
-    $scope.text = "Albert osti"
+    $scope.text = "Albert osti fagotin ja töräytti puhkuvan melodian."
     $scope.locale = "fi"
     $scope.$watchCollection('[text,locale]', _.throttle(() ->
       locale = $scope.locale
