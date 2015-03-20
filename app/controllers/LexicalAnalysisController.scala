@@ -24,6 +24,7 @@ import services.lexicalanalysis.LanguageDetector
 import play.api.libs.iteratee.{Iteratee, Concurrent}
 import scala.concurrent.ExecutionContext.Implicits.global
 import fi.seco.lexical.combined.CombinedLexicalAnalysisService
+import java.util.Collections
 
 /**
  * @author jiemakel
@@ -71,7 +72,7 @@ class LexicalAnalysisController(las: CompoundLexicalAnalysisService, hfstlas: Co
     val ldResult = detector.getProbabilities().map(l => Map(l.lang -> l.prob))
     val hfstResultTmp = hfstlas.getSupportedAnalyzeLocales.map(lang =>
       (lang.toString(),
-        hfstlas.analyze(text,lang).foldRight((0,0)) { (ar,count) =>
+        hfstlas.analyze(text,lang,Collections.emptyList[String]).foldRight((0,0)) { (ar,count) =>
           if ((ar.getAnalysis.get(0).getParts().get(0).getTags.isEmpty || ar.getAnalysis.get(0).getParts().get(0).getTags.containsKey("PUNCT")) && ar.getAnalysis.get(0).getGlobalTags.isEmpty)
             (count._1,count._2+1)
           else (count._1+1,count._2+1)
@@ -88,7 +89,7 @@ class LexicalAnalysisController(las: CompoundLexicalAnalysisService, hfstlas: Co
       val ldResult = detector.getProbabilities().map(l => Map(l.lang -> l.prob))
       val hfstResultTmp = locales.map(new Locale(_)).intersect(hfstlas.getSupportedAnalyzeLocales.toSeq).map(lang =>
         (lang.toString(),
-          hfstlas.analyze(text,lang).foldRight((0,0)) { (ar,count) =>
+          hfstlas.analyze(text,lang,Collections.emptyList[String]).foldRight((0,0)) { (ar,count) =>
             if ((ar.getAnalysis.get(0).getParts().get(0).getTags.isEmpty || ar.getAnalysis.get(0).getParts().get(0).getTags.containsKey("PUNCT")) && ar.getAnalysis.get(0).getGlobalTags.isEmpty)
               (count._1,count._2+1)
             else (count._1+1,count._2+1)
@@ -112,7 +113,7 @@ class LexicalAnalysisController(las: CompoundLexicalAnalysisService, hfstlas: Co
           val ldResult = detector.getProbabilities().map(l => Map(l.lang -> l.prob))
           val hfstResultTmp = locales.map(new Locale(_)).intersect(hfstlas.getSupportedAnalyzeLocales.toSeq).map(lang =>
             (lang.toString(),
-              hfstlas.analyze(text,lang).foldRight((0,0)) { (ar,count) =>
+              hfstlas.analyze(text,lang,Collections.emptyList[String]).foldRight((0,0)) { (ar,count) =>
                 if ((ar.getAnalysis.get(0).getParts().get(0).getTags.isEmpty || ar.getAnalysis.get(0).getParts().get(0).getTags.containsKey("PUNCT")) && ar.getAnalysis.get(0).getGlobalTags.isEmpty)
                   (count._1,count._2+1)
                 else (count._1+1,count._2+1)
@@ -132,7 +133,7 @@ class LexicalAnalysisController(las: CompoundLexicalAnalysisService, hfstlas: Co
           val ldResult = detector.getProbabilities().map(l => Map(l.lang -> l.prob))
           val hfstResultTmp = hfstlas.getSupportedAnalyzeLocales.map(lang =>
             (lang.toString(),
-              hfstlas.analyze(text,lang).foldRight((0,0)) { (ar,count) =>
+              hfstlas.analyze(text,lang,Collections.emptyList[String]).foldRight((0,0)) { (ar,count) =>
                 if ((ar.getAnalysis.get(0).getParts().get(0).getTags.isEmpty || ar.getAnalysis.get(0).getParts().get(0).getTags.containsKey("PUNCT")) && ar.getAnalysis.get(0).getGlobalTags.isEmpty)
                   (count._1,count._2+1)
                 else (count._1+1,count._2+1)
@@ -264,13 +265,13 @@ class LexicalAnalysisController(las: CompoundLexicalAnalysisService, hfstlas: Co
     }
   }
 
-  def analyze(text: Option[String], locale: Option[Locale]) : Either[(JsValue,String),Either[String,JsValue]] = {
+  def analyze(text: Option[String], locale: Option[Locale], forms: Seq[String]) : Either[(JsValue,String),Either[String,JsValue]] = {
     text match {
       case Some(text) =>
         locale match {
-          case Some(locale) => if (hfstlas.getSupportedAnalyzeLocales.contains(locale)) Right(Right(Json.toJson(hfstlas.analyze(text, locale).toList))) else Right(Left(s"Locale $locale not in the supported locales (${hfstlas.getSupportedAnalyzeLocales.mkString(", ")})"))
+          case Some(locale) => if (hfstlas.getSupportedAnalyzeLocales.contains(locale)) Right(Right(Json.toJson(hfstlas.analyze(text, locale, forms).toList))) else Right(Left(s"Locale $locale not in the supported locales (${hfstlas.getSupportedAnalyzeLocales.mkString(", ")})"))
           case None => getBestLang(text,hfstlas.getSupportedAnalyzeLocales.toSeq.map(_.toString)) match {
-            case Some(lang) => Right(Right(Json.toJson(Map("locale" -> Json.toJson(lang), "analysis" -> Json.toJson(hfstlas.analyze(text, new Locale(lang)).toList)))))
+            case Some(lang) => Right(Right(Json.toJson(Map("locale" -> Json.toJson(lang), "analysis" -> Json.toJson(hfstlas.analyze(text, new Locale(lang), forms).toList)))))
             case None       => Right(Left(s"Couldn't categorize $text into any of the supported languages (${hfstlas.getSupportedAnalyzeLocales.mkString(", ")})"))
           }
         }
@@ -279,18 +280,18 @@ class LexicalAnalysisController(las: CompoundLexicalAnalysisService, hfstlas: Co
     }
   }
 
-  def analyzeGET(text: Option[String], locale: Option[Locale]) = CORSAction { implicit request =>
-    analyze(text,locale)
+  def analyzeGET(text: Option[String], locale: Option[Locale], forms: Seq[String]) = CORSAction { implicit request =>
+    analyze(text,locale, forms)
   }
 
   def analyzePOST = CORSAction { implicit request =>
     val formBody = request.body.asFormUrlEncoded;
     val jsonBody = request.body.asJson;
     formBody.map { data =>
-      toResponse(analyze(data.get("text").map(_.head),data.get("locale").map(l => new Locale(l.head))))
+      toResponse(analyze(data.get("text").map(_.head),data.get("locale").map(l => new Locale(l.head)),data.get("forms").getOrElse(Seq.empty)))
     }.getOrElse {
       jsonBody.map { data =>
-        toResponse(analyze((data \ "text").asOpt[String],(data \ "locale").asOpt[String].map(l => new Locale(l))))
+        toResponse(analyze((data \ "text").asOpt[String],(data \ "locale").asOpt[String].map(l => new Locale(l)),(data \ "forms").asOpt[Seq[String]].getOrElse(Seq.empty)))
       }.getOrElse {
         BadRequest("Expecting either a JSON or a form-url-encoded body")
       }
@@ -304,7 +305,7 @@ class LexicalAnalysisController(las: CompoundLexicalAnalysisService, hfstlas: Co
 
     //log the message to stdout and send response back to client
     val in = Iteratee.foreach[JsValue] {
-      data => channel push toWSResponse(analyze((data \ "text").asOpt[String],(data \ "locale").asOpt[String].map(l => new Locale(l))))
+      data => channel push toWSResponse(analyze((data \ "text").asOpt[String],(data \ "locale").asOpt[String].map(l => new Locale(l)),(data \ "forms").asOpt[Seq[String]].getOrElse(Seq.empty)))
     }
     (in,out)
   }

@@ -38,10 +38,11 @@ angular.module('index',['play.routing'])
   .controller('AnalyzeCtrl', ($scope, playRoutes) ->
     $scope.text = "Albert osti fagotin ja töräytti puhkuvan melodian."
     $scope.locale = "fi"
+    $scope.forms = "V N Nom Sg, N Nom Pl, A Pos Nom Pl"
     $scope.$watchCollection('[text,locale]', _.throttle(() ->
       locale = $scope.locale
       if locale=='' then locale=null
-      playRoutes.controllers.LexicalAnalysisController.analyzeGET($scope.text,locale).get().success((data) ->
+      playRoutes.controllers.LexicalAnalysisController.analyzeGET($scope.text,locale,$scope.forms.split(/, */)).get().success((data) ->
         $scope.analysis=data
         dta = []
         for word,index in data

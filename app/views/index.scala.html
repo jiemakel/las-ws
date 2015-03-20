@@ -185,13 +185,14 @@
         <div ng-controller="AnalyzeCtrl">
            <div class="page-header"><h1>Morphological Analysis</h1></div>
            <p>
-              Gives a morphological analysis of the text. Call with e.g. <a href='@controllers.routes.LexicalAnalysisController.analyzeGET(Some("Albert osti"),Some(new java.util.Locale("fi")))'>@controllers.routes.LexicalAnalysisController.analyzeGET(Some("Albert osti"),Some(new java.util.Locale("fi")))</a><br />
-               or just <a href='@controllers.routes.LexicalAnalysisController.analyzeGET(Some("Bier bitte"),None)'>@controllers.routes.LexicalAnalysisController.analyzeGET(Some("Bier bitte"),None)</a> to guess locale.<br />
+              Gives a morphological analysis of the text. Call with e.g. <a href='@controllers.routes.LexicalAnalysisController.analyzeGET(Some("Albert osti"),Some(new java.util.Locale("fi")),List("V N Nom Sg","N Nom Pl"))'>@controllers.routes.LexicalAnalysisController.analyzeGET(Some("Albert osti"),Some(new java.util.Locale("fi")),List("V N Nom Sg","N Nom Pl"))</a><br />
+               or just <a href='@controllers.routes.LexicalAnalysisController.analyzeGET(Some("Bier bitte"),None,List())'>@controllers.routes.LexicalAnalysisController.analyzeGET(Some("Bier bitte"),None,List())</a> to guess locale.<br />
                 Also available using HTTP POST with parameters given either as form-urlencoded or JSON. For intensive use, there is also a JSON-understanding <a href="http://en.wikipedia.org/wiki/WebSocket">WebSocket</a>-version at <a href="@controllers.routes.LexicalAnalysisController.analyzeWS">@controllers.routes.LexicalAnalysisController.analyzeWS</a>. All methods are <a href="http://en.wikipedia.org/wiki/Cross-origin_resource_sharing">CORS</a>-enabled.<br />
                Returns results as JSON, e.g.:
-               <pre class="pre-scrollable">@play.api.libs.json.Json.prettyPrint(ctrl.analyze(Some("Albert osti"),Some(new java.util.Locale("fi"))).right.get.right.get)</pre> or
-               <pre class="pre-scrollable">@play.api.libs.json.Json.prettyPrint(ctrl.analyze(Some("Bier bitte"),None).right.get.right.get)</pre>
-               When called without parameters but with an Accept header other than text/html, returns the @(supportedHFSTAnalyzeLocales.size) supported locales as JSON (e.g. <code>@ctrl.analyze(None,None).left.get._1</code>).
+               <pre class="pre-scrollable">@play.api.libs.json.Json.prettyPrint(ctrl.analyze(Some("Albert osti"),Some(new java.util.Locale("fi")),List("V N Nom Sg","N Nom Pl")).right.get.right.get)</pre> or
+               <pre class="pre-scrollable">@play.api.libs.json.Json.prettyPrint(ctrl.analyze(Some("Bier bitte"),None,List()).right.get.right.get)</pre>
+               When called without parameters but with an Accept header other than text/html, returns the @(supportedHFSTAnalyzeLocales.size) supported locales as JSON (e.g. <code>@ctrl.analyze(None,None,List()).left.get._1</code>).
+               The analysis web services also supports inflection, with the same parameters as the inflection service.
            </p>
            <p>
                Uses finite state transducers provided by the <a href="http://hfst.sourceforge.net/">HFST</a>, <a href="https://code.google.com/p/omorfi/">Omorfi</a> and <a href="http://giellatekno.uit.no/">Giellatekno</a> projects. Note that the quality and scope of analysis as well as tags returned vary wildly between languages.
@@ -205,6 +206,13 @@
                 <div class="alert alert-success" ng-show="analysis && !errorStatus">Analysis: {{analysis}}</div>
                 <div class="alert alert-danger" ng-show="errorStatus">Service returned error {{errorStatus}}:<br />{{error}}</div>
             </div>
+            
+            <div class="form-group">
+                <label class="control-label">Desired Inflection Forms:</label>
+                <div class="controls">
+                    <input type="text" name="forms" class="form-control" ng-model="forms" />
+                </div>
+            </div>            
 
             <div class="form-group">
                 <label class="control-label">Locale:</label>
