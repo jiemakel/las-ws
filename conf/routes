@@ -7,11 +7,11 @@ GET	    /identify					@controllers.LexicalAnalysisController.identifyGET(text : 
 POST    /identify					@controllers.LexicalAnalysisController.identifyPOST
 GET     /identifyWS                 @controllers.LexicalAnalysisController.identifyWS
 OPTIONS /identify                   @controllers.LexicalAnalysisController.options()
-GET     /baseform                   @controllers.LexicalAnalysisController.baseformGET(text : Option[String], locale : Option[Locale] ?= None)
+GET     /baseform                   @controllers.LexicalAnalysisController.baseformGET(text : Option[String], locale : Option[Locale] ?= None, depth : Int ?= 1)
 POST    /baseform                   @controllers.LexicalAnalysisController.baseformPOST
 GET     /baseformWS                 @controllers.LexicalAnalysisController.baseformWS
 OPTIONS /baseform                   @controllers.LexicalAnalysisController.options()
-GET		/analyze					@controllers.LexicalAnalysisController.analyzeGET(text: Option[String], locale : Option[Locale] ?= None, forms: List[String] ?= List.empty)
+GET		/analyze					@controllers.LexicalAnalysisController.analyzeGET(text: Option[String], locale : Option[Locale] ?= None, forms: List[String] ?= List.empty, depth : Int ?= 2)
 POST	/analyze					@controllers.LexicalAnalysisController.analyzePOST
 GET     /analyzeWS                  @controllers.LexicalAnalysisController.analyzeWS
 OPTIONS /analyze                    @controllers.LexicalAnalysisController.options()

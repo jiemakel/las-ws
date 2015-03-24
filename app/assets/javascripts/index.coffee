@@ -19,10 +19,11 @@ angular.module('index',['play.routing'])
   )
   .controller('LemmatizeCtrl', ($scope, playRoutes) ->
     $scope.text = "Albert osti fagotin ja töräytti puhkuvan melodian."
-    $scope.$watchCollection('[text,locale]', _.throttle(() ->
+    $scope.depth = "1"
+    $scope.$watchCollection('[text,locale,depth]', _.throttle(() ->
       locale = $scope.locale
       if locale=='' then locale=null
-      playRoutes.controllers.LexicalAnalysisController.baseformGET($scope.text,locale).get().success((data) ->
+      playRoutes.controllers.LexicalAnalysisController.baseformGET($scope.text,locale,if ($scope.depth && $scope.depth!="") then $scope.depth else "1").get().success((data) ->
         $scope.errorStatus = ''
         $scope.baseform=data
       ).error((data,status) ->
@@ -39,11 +40,13 @@ angular.module('index',['play.routing'])
     $scope.text = "Albert osti fagotin ja töräytti puhkuvan melodian."
     $scope.locale = "fi"
     $scope.forms = "V N Nom Sg, N Nom Pl, A Pos Nom Pl"
-    $scope.$watchCollection('[text,locale]', _.throttle(() ->
+    $scope.depth = "2"    
+    $scope.$watchCollection('[text,locale,forms,depth]', _.throttle(() ->
       locale = $scope.locale
       if locale=='' then locale=null
-      playRoutes.controllers.LexicalAnalysisController.analyzeGET($scope.text,locale,$scope.forms.split(/, */)).get().success((data) ->
+      playRoutes.controllers.LexicalAnalysisController.analyzeGET($scope.text,locale,$scope.forms.split(/, */),if ($scope.depth && $scope.depth!="") then $scope.depth else "2").get().success((data) ->
         $scope.analysis=data
+        $scope.errorStatus = ''
         dta = []
         for word,index in data
         	da = null
@@ -83,6 +86,7 @@ angular.module('index',['play.routing'])
       if locale=='' then locale=null
       playRoutes.controllers.LexicalAnalysisController.inflectGET($scope.text, $scope.forms.split(/, */),$scope.baseform,locale).get().success((data) ->
         $scope.inflection=data
+        $scope.errorStatus = ''
       ).error((data,status) ->
         if (status==0)
           $scope.errorStatus = 503
@@ -100,6 +104,7 @@ angular.module('index',['play.routing'])
       if locale=='' then locale=null
       playRoutes.controllers.LexicalAnalysisController.hyphenateGET($scope.text,locale).get().success((data) ->
         $scope.hyphenation=data
+        $scope.errorStatus = ''
       ).error((data,status) ->
         if (status==0)
           $scope.errorStatus = 503
