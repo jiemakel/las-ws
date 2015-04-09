@@ -71,7 +71,7 @@ class LexicalAnalysisController(las: CompoundLexicalAnalysisService, hfstlas: Co
     detector.append(text)
     val ldResult = detector.getProbabilities().map(l => Map(l.lang -> l.prob))
     val hfstResultTmp = hfstlas.getSupportedAnalyzeLocales.map(lang =>
-      (lang.toString(),hfstlas.recognize(text, lang))).filter(_._2!=0.0).toSeq.sortBy(_._2).reverse
+      (lang.toString(),hfstlas.recognize(text, lang))).filter(_._2!=0.0).toSeq.sortBy(_._2).reverse.map(p => (p._1,p._2*p._2))
     val tc = hfstResultTmp.foldRight(0.0) {_._2+_}
     val hfstResult = hfstResultTmp.map(p => Map(p._1 -> p._2/tc))
     Try(Some((ldResult ++ hfstResult ++ lrResult).groupBy(_.keysIterator.next).mapValues(_.foldRight(0.0){(p,r) => r+p.valuesIterator.next}/3.0).maxBy(_._2)._1)).getOrElse(None)
@@ -82,7 +82,7 @@ class LexicalAnalysisController(las: CompoundLexicalAnalysisService, hfstlas: Co
       detector.append(text)
       val ldResult = detector.getProbabilities().map(l => Map(l.lang -> l.prob))
       val hfstResultTmp = locales.map(new Locale(_)).intersect(hfstlas.getSupportedAnalyzeLocales.toSeq).map(lang =>
-      (lang.toString(),hfstlas.recognize(text, lang))).filter(_._2!=0.0).toSeq.sortBy(_._2).reverse
+      (lang.toString(),hfstlas.recognize(text, lang))).filter(_._2!=0.0).toSeq.sortBy(_._2).reverse.map(p => (p._1,p._2*p._2))
       val tc = hfstResultTmp.foldRight(0.0) {_._2+_}
       val hfstResult = hfstResultTmp.map(p => Map(p._1 -> p._2/tc))
       Try(Some((ldResult ++ hfstResult ++ lrResult).groupBy(_.keysIterator.next).mapValues(_.foldRight(0.0){(p,r) => r+p.valuesIterator.next}/3.0).maxBy(_._2)._1)).getOrElse(None)
@@ -100,7 +100,7 @@ class LexicalAnalysisController(las: CompoundLexicalAnalysisService, hfstlas: Co
           detector.append(text)
           val ldResult = detector.getProbabilities().map(l => Map(l.lang -> l.prob))
           val hfstResultTmp = locales.map(new Locale(_)).intersect(hfstlas.getSupportedAnalyzeLocales.toSeq).map(lang =>
-            (lang.toString(),hfstlas.recognize(text, lang))).filter(_._2!=0.0).toSeq.sortBy(_._2).reverse
+            (lang.toString(),hfstlas.recognize(text, lang))).filter(_._2!=0.0).toSeq.sortBy(_._2).reverse.map(p => (p._1,p._2*p._2))
           val tc = hfstResultTmp.foldRight(0.0) {_._2+_}
           val hfstResult = hfstResultTmp.map(p => Map(p._1 -> p._2/tc))
           val bestGuess = Try(Some((ldResult ++ hfstResult ++ lrResult).groupBy(_.keysIterator.next).mapValues(_.foldRight(0.0){(p,r) => r+p.valuesIterator.next}/3.0).maxBy(_._2))).getOrElse(None)
@@ -114,7 +114,7 @@ class LexicalAnalysisController(las: CompoundLexicalAnalysisService, hfstlas: Co
           detector.append(text)
           val ldResult = detector.getProbabilities().map(l => Map(l.lang -> l.prob))
           val hfstResultTmp = hfstlas.getSupportedAnalyzeLocales.map(lang =>
-            (lang.toString(),hfstlas.recognize(text, lang))).filter(_._2!=0.0).toSeq.sortBy(_._2).reverse
+            (lang.toString(),hfstlas.recognize(text, lang))).filter(_._2!=0.0).toSeq.sortBy(_._2).reverse.map(p => (p._1,p._2*p._2))
           val tc = hfstResultTmp.foldRight(0.0) {_._2+_}
           val hfstResult = hfstResultTmp.map(p => Map(p._1 -> p._2/tc))
           val bestGuess = Try(Some((ldResult ++ hfstResult ++ lrResult).groupBy(_.keysIterator.next).mapValues(_.foldRight(0.0){(p,r) => r+p.valuesIterator.next}/3.0).maxBy(_._2))).getOrElse(None)
