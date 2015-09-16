@@ -23,7 +23,7 @@ libraryDependencies ++= Seq(
 )
 
 resolvers ++= Seq(
-    "Local Maven Repository" at Path.userHome.asFile.toURI.toURL + ".m2/repository",
+    Resolver.mavenLocal,
     "Github Imagination" at "https://github.com/Imaginatio/Maven-repository/raw/master"
 )
 
