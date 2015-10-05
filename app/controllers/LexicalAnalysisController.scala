@@ -69,7 +69,7 @@ class LexicalAnalysisController(las: CompoundLexicalAnalysisService, hfstlas: Co
     val lrResult = Option(LanguageRecognizer.getLanguageAsObject(text)).map(r => Map(r.getLang() -> r.getIndex))
     val detector = LanguageDetector()
     detector.append(text)
-    val ldResult = detector.getProbabilities().map(l => Map(l.lang -> l.prob))
+    val ldResult = Try(detector.getProbabilities().map(l => Map(l.lang -> l.prob))).getOrElse(Seq.empty)
     val hfstResultTmp = hfstlas.getSupportedAnalyzeLocales.map(lang =>
       (lang.toString(),hfstlas.recognize(text, lang))).filter(_._2!=0.0).toSeq.sortBy(_._2).reverse.map(p => (p._1,p._2*p._2))
     val tc = hfstResultTmp.foldRight(0.0) {_._2+_}
@@ -80,7 +80,7 @@ class LexicalAnalysisController(las: CompoundLexicalAnalysisService, hfstlas: Co
       val detector = LanguageDetector()
       detector.setPriorMap(new util.HashMap(mapAsJavaMap(locales.map((_,new java.lang.Double(1.0))).toMap)))
       detector.append(text)
-      val ldResult = detector.getProbabilities().map(l => Map(l.lang -> l.prob))
+      val ldResult = Try(detector.getProbabilities().map(l => Map(l.lang -> l.prob))).getOrElse(Seq.empty)
       val hfstResultTmp = locales.map(new Locale(_)).intersect(hfstlas.getSupportedAnalyzeLocales.toSeq).map(lang =>
       (lang.toString(),hfstlas.recognize(text, lang))).filter(_._2!=0.0).toSeq.sortBy(_._2).reverse.map(p => (p._1,p._2*p._2))
       val tc = hfstResultTmp.foldRight(0.0) {_._2+_}
@@ -98,7 +98,7 @@ class LexicalAnalysisController(las: CompoundLexicalAnalysisService, hfstlas: Co
           val detector = LanguageDetector()
           detector.setPriorMap(new util.HashMap(mapAsJavaMap(locales.map((_,new java.lang.Double(1.0))).toMap)))
           detector.append(text)
-          val ldResult = detector.getProbabilities().map(l => Map(l.lang -> l.prob))
+          val ldResult = Try(detector.getProbabilities().map(l => Map(l.lang -> l.prob))).getOrElse(Seq.empty)
           val hfstResultTmp = locales.map(new Locale(_)).intersect(hfstlas.getSupportedAnalyzeLocales.toSeq).map(lang =>
             (lang.toString(),hfstlas.recognize(text, lang))).filter(_._2!=0.0).toSeq.sortBy(_._2).reverse.map(p => (p._1,p._2*p._2))
           val tc = hfstResultTmp.foldRight(0.0) {_._2+_}
@@ -112,7 +112,7 @@ class LexicalAnalysisController(las: CompoundLexicalAnalysisService, hfstlas: Co
           val lrResult = Option(LanguageRecognizer.getLanguageAsObject(text)).map(r => Map(r.getLang() -> r.getIndex))
           val detector = LanguageDetector()
           detector.append(text)
-          val ldResult = detector.getProbabilities().map(l => Map(l.lang -> l.prob))
+          val ldResult = Try(detector.getProbabilities().map(l => Map(l.lang -> l.prob))).getOrElse(Seq.empty)
           val hfstResultTmp = hfstlas.getSupportedAnalyzeLocales.map(lang =>
             (lang.toString(),hfstlas.recognize(text, lang))).filter(_._2!=0.0).toSeq.sortBy(_._2).reverse.map(p => (p._1,p._2*p._2))
           val tc = hfstResultTmp.foldRight(0.0) {_._2+_}
