@@ -3,9 +3,7 @@ seco-lexicalanalysis-play
 
 SeCo lexical analysis services published as a web service using the Scala Play framework . 
 
-A short presentation of the service is available [here](http://j.mp/Hurs3V).
-
-Download a ready to run version from http://sourceforge.net/projects/seco-lexicalanalysis-play/files/lexicalanalysis-play-1.0-SNAPSHOT.zip/download
+A short presentation of the service (in Finnish) is available [here](http://j.mp/Hurs3V).
 
 Needs https://github.com/jiemakel/seco-lexicalanalysis/ & https://github.com/jiemakel/seco-hfst/
 
