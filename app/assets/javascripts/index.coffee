@@ -18,12 +18,12 @@ angular.module('index',['play.routing'])
     ,1000))
   )
   .controller('LemmatizeCtrl', ($scope, playRoutes) ->
-    $scope.text = "Albert osti fagotin ja töräytti puhkuvan melodian."
+    $scope.text = "Albert osti fagotin ja töräytti puhkuvan melodian maakunnanvoudinvirastossa."
     $scope.depth = "1"
-    $scope.$watchCollection('[text,locale,depth]', _.throttle(() ->
+    $scope.$watchCollection('[text,locale,segments,depth]', _.throttle(() ->
       locale = $scope.locale
       if locale=='' then locale=null
-      playRoutes.controllers.LexicalAnalysisController.baseformGET($scope.text,locale,if ($scope.depth && $scope.depth!="") then $scope.depth else "1").get().success((data) ->
+      playRoutes.controllers.LexicalAnalysisController.baseformGET($scope.text,locale,$scope.segments, if ($scope.depth && $scope.depth!="") then $scope.depth else "1").get().success((data) ->
         $scope.errorStatus = ''
         $scope.baseform=data
       ).error((data,status) ->
@@ -41,10 +41,10 @@ angular.module('index',['play.routing'])
     $scope.locale = "fi"
     $scope.forms = "V N Nom Sg, N Nom Pl, A Pos Nom Pl"
     $scope.depth = "2"    
-    $scope.$watchCollection('[text,locale,forms,depth]', _.throttle(() ->
+    $scope.$watchCollection('[text,locale,forms,segments,depth]', _.throttle(() ->
       locale = $scope.locale
       if locale=='' then locale=null
-      playRoutes.controllers.LexicalAnalysisController.analyzeGET($scope.text,locale,$scope.forms.split(/, */),if ($scope.depth && $scope.depth!="") then $scope.depth else "2").get().success((data) ->
+      playRoutes.controllers.LexicalAnalysisController.analyzeGET($scope.text,locale,$scope.forms.split(/, */),$scope.segments,if ($scope.depth && $scope.depth!="") then $scope.depth else "2").get().success((data) ->
         $scope.analysis=data
         $scope.errorStatus = ''
         dta = []
@@ -56,7 +56,7 @@ angular.module('index',['play.routing'])
         	    da = {
         	       dephead:analysis.globalTags['HEAD'][0]
         	       deprel:analysis.globalTags['DEPREL'][0]
-        	       pos:analysis.wordParts[analysis.wordParts.length-1].tags['POS'][0]
+        	       pos:analysis.wordParts[analysis.wordParts.length-1].tags['UPOS'][0]
         	       word:word.word
         	       data:word
         	       ref:""+(index+1)
@@ -81,10 +81,10 @@ angular.module('index',['play.routing'])
     $scope.locale = "fi"
     $scope.baseform=true;
     $scope.forms = "V N Nom Sg, N Nom Pl, A Pos Nom Pl"
-    $scope.$watchCollection('[text,locale,baseform,forms]', _.throttle(() ->
+    $scope.$watchCollection('[text,locale,segments,baseform,forms]', _.throttle(() ->
       locale = $scope.locale
       if locale=='' then locale=null
-      playRoutes.controllers.LexicalAnalysisController.inflectGET($scope.text, $scope.forms.split(/, */),$scope.baseform,locale).get().success((data) ->
+      playRoutes.controllers.LexicalAnalysisController.inflectGET($scope.text, $scope.forms.split(/, */),$scope.segments,$scope.baseform,locale).get().success((data) ->
         $scope.inflection=data
         $scope.errorStatus = ''
       ).error((data,status) ->
