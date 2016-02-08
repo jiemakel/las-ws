@@ -30,3 +30,7 @@ resolvers ++= Seq(
 routesImport ++= Seq("binders.Binders._","java.util.Locale")
 
 net.virtualvoid.sbt.graph.Plugin.graphSettings
+
+scalacOptions += "-target:jvm-1.7"
+
+javacOptions ++= Seq("-source", "1.7", "-target", "1.7")
