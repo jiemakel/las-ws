@@ -109,6 +109,7 @@
                 <pre class="pre-scrollable">@ctrl.identify(Some("The quick brown fox jumps over the lazy dog"),List.empty).right.get.right.get</pre>
                 When called without parameters but with an Accept header other than text/html, returns the supported locales as JSON, e.g.:
                 <pre class="pre-scrollable">@ctrl.identify(None,Seq.empty).left.get._1</pre>
+		Pretty printing is enabled with the boolean parameter pretty.
             </p>
             <p>
                 In total, the service supports @((supportedLanguageDetectorLocales ++ supportedLanguageRecognizerLocales ++ supportedHFSTAnalyzeLocales.map(_.toString)).toSeq.sorted.distinct.size) locales, combining results from three sources:
@@ -150,7 +151,7 @@
                 or just <a href='@controllers.routes.LexicalAnalysisController.baseformGET(Some("The quick brown fox jumps over the lazy dog"),None)'>@controllers.routes.LexicalAnalysisController.baseformGET(Some("The quick brown fox jumps over the lazy dog"),None)</a> to guess locale.<br />
                 Also available using HTTP POST with parameters given either as form-urlencoded or JSON. For intensive use, there is also a JSON-understanding <a href="http://en.wikipedia.org/wiki/WebSocket">WebSocket</a>-version at <a href="@controllers.routes.LexicalAnalysisController.baseformWS">@controllers.routes.LexicalAnalysisController.baseformWS</a>. All methods are <a href="http://en.wikipedia.org/wiki/Cross-origin_resource_sharing">CORS</a>-enabled.<br />
                 Returns results as JSON (e.g. <code>@ctrl.baseform(Some("Albert osti fagotin ja töräytti puhkuvan melodian."),Some(new java.util.Locale("fi")),false,1).right.get.right.get</code> or <code>@ctrl.baseform(Some("The quick brown fox jumps over the lazy dog"),None,false,1).right.get.right.get</code>)<br />
-                When called without parameters but with an Accept header other than text/html, returns the @((supportedSnowballLocales++supportedHFSTBaseformLocales).toSeq.distinct.size) supported locales as JSON. A boolean segment parameter can be set to segment compound words with a '#'. Also accepts an optional depth parameter of either 0 or 1 for less or more in-depth analysis (default=1).
+                When called without parameters but with an Accept header other than text/html, returns the @((supportedSnowballLocales++supportedHFSTBaseformLocales).toSeq.distinct.size) supported locales as JSON. A boolean segment parameter can be set to segment compound words with a '#'. Also accepts an optional depth parameter of either 0 or 1 for less or more in-depth analysis (default=1). Pretty printing is enabled with the boolean parameter pretty.
             </p>
 
             <p>
@@ -205,7 +206,7 @@
                <pre class="pre-scrollable">@play.api.libs.json.Json.prettyPrint(ctrl.analyze(Some("Albert osti"),Some(new java.util.Locale("fi")),List("V N Nom Sg","N Nom Pl"),false,2).right.get.right.get)</pre> or
                <pre class="pre-scrollable">@play.api.libs.json.Json.prettyPrint(ctrl.analyze(Some("Bier bitte"),None,List(),false,2).right.get.right.get)</pre>
                When called without parameters but with an Accept header other than text/html, returns the @(supportedHFSTAnalyzeLocales.size) supported locales as JSON (e.g. <code>@ctrl.analyze(None,None,List(),false,2).left.get._1</code>).
-			   A boolean segment parameter can be set to segment compound words with a '#'. Also accepts an optional depth parameter of 0-2 for less or more in-depth analysis (default=2).
+	       A boolean segment parameter can be set to segment compound words with a '#'. Also accepts an optional depth parameter of 0-2 for less or more in-depth analysis (default=2). Pretty printing is enabled with the boolean parameter pretty.
                The analysis web services also supports inflection, with the same parameters as the inflection service.
            </p>
            <p>
@@ -217,7 +218,7 @@
                     <textarea name="text" class="form-control" ng-model="text" rows="5"></textarea>
                 </div>
                 <div id="depanalysis"></div>
-                <div class="alert alert-success" ng-show="analysis && !errorStatus">Analysis: {{analysis}}</div>
+                <pre class="alert alert-success pre-scrollable" ng-show="analysis && !errorStatus">Analysis: {{analysis|json}}</pre>
                 <div class="alert alert-danger" ng-show="errorStatus">Service returned error {{errorStatus}}:<br />{{error}}</div>
             </div>
             
@@ -262,6 +263,7 @@
                 Also available using HTTP POST with parameters given either as form-urlencoded or JSON. For intensive use, there is also a JSON-understanding <a href="http://en.wikipedia.org/wiki/WebSocket">WebSocket</a>-version at <a href="@controllers.routes.LexicalAnalysisController.inflectWS">@controllers.routes.LexicalAnalysisController.inflectWS</a>. All methods are <a href="http://en.wikipedia.org/wiki/Cross-origin_resource_sharing">CORS</a>-enabled.<br />
                 Returns results as JSON (e.g. <code>@ctrl.inflect(Some("Albert osti fagotin"),List("V N Nom Sg","N Nom Pl"),false,true,Some(new java.util.Locale("fi"))).right.get.right.get</code>)<br />
                 When called without parameters but with an Accept header other than text/html, returns the @(supportedHFSTInflectionLocales.size) supported locales as JSON (e.g. <code>@ctrl.inflect(None,Seq.empty,false,false,None).left.get._1</code>).
+		Pretty printing is enabled with the boolean parameter pretty.
             </p>
             <p>
                 Uses finite state transducers provided by the <a href="http://hfst.sourceforge.net/">HFST</a>, <a href="https://code.google.com/p/omorfi/">Omorfi</a> and <a href="http://giellatekno.uit.no/">Giellatekno</a> projects. Note that the inflection form syntaxes differ wildly between languages.
@@ -315,6 +317,7 @@
                 Returns results as JSON (e.g. <code>@ctrl.hyphenate(Some("Albert osti fagotin ja töräytti puhkuvan melodian."),Some(new java.util.Locale("fi"))).right.get.right.get</code> or <code>@ctrl.hyphenate(Some("ein Bier bitte"),None).right.get.right.get</code>)<br />
                 When called without parameters but with an Accept header other than text/html, returns the @(supportedHFSTHyphenationLocales.size) supported locales as JSON, e.g.:
                 <pre class="pre-scrollable">@ctrl.hyphenate(None,None).left.get._1</pre>
+		Pretty printing is enabled with the boolean parameter pretty.
             </p>
             <p>
                 Uses finite state transducers provided by the <a href="http://hfst.sourceforge.net/">HFST</a>, <a href="https://code.google.com/p/omorfi/">Omorfi</a> and <a href="http://giellatekno.uit.no/">Giellatekno</a> projects. Those provided by HFST have been automatically translated from the TeX CTAN distribution's hyphenation rulesets.

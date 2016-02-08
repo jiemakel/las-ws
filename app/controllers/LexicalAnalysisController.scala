@@ -52,14 +52,16 @@ class LexicalAnalysisController(las: CompoundLexicalAnalysisService, hfstlas: Co
     Ok(views.html.index(this,LanguageRecognizer.getAvailableLanguages, LanguageDetector.supportedLanguages, snowballlas.getSupportedBaseformLocales.map(_.toString), hfstlas.getSupportedBaseformLocales.map(_.toString), hfstlas.getSupportedAnalyzeLocales.map(_.toString),hfstlas.getSupportedInflectionLocales.map(_.toString),hfstlas.getSupportedHyphenationLocales.map(_.toString) ))
   }
 
-  implicit def toResponse(res : Either[(JsValue, String),Either[String,JsValue]])(implicit request : Request[AnyContent]) : Result = {
+  implicit def toResponse(res : Either[(JsValue, String),Either[String,JsValue]])(implicit request : Request[AnyContent], pretty: Option[String]) : Result = {
     res match {
       case Left(x) =>
         if (Accepts.Html.unapply(request)) Redirect(x._2)
         else Ok(x._1)
       case Right(x) => x match {
         case Left(y) => NotImplemented(y)
-        case Right(y) => Ok(y)
+        case Right(y) => 
+          if (pretty.isDefined && (pretty.get=="" || pretty.get.toBoolean)) Ok(Json.prettyPrint(y))
+          else Ok(y)
       }
     }
   }
@@ -90,7 +92,7 @@ class LexicalAnalysisController(las: CompoundLexicalAnalysisService, hfstlas: Co
 
     }
   }
-
+  
   def identify(text: Option[String], locales: Seq[String]) : Either[(JsValue, String),Either[String,JsValue]] = {
     text match {
       case Some(text) =>
@@ -141,7 +143,8 @@ class LexicalAnalysisController(las: CompoundLexicalAnalysisService, hfstlas: Co
     }
   }
 
-  def identifyGET(text: Option[String], locales: List[String]) = CORSAction { implicit request =>
+  def identifyGET(text: Option[String], locales: List[String],pretty:Option[String]) = CORSAction { implicit request =>
+    implicit val ipretty = pretty;
     identify(text,locales)
   }
 
@@ -149,9 +152,11 @@ class LexicalAnalysisController(las: CompoundLexicalAnalysisService, hfstlas: Co
     val formBody = request.body.asFormUrlEncoded;
     val jsonBody = request.body.asJson;
     formBody.map { data =>
+      implicit val ipretty = data.get("pretty").map(_.head)
       toResponse(identify(data.get("text").map(_.head),data.get("locales").getOrElse(Seq.empty)))
     }.getOrElse {
       jsonBody.map { data =>
+        implicit val ipretty = (data \ "pretty").asOpt[String]
         toResponse(identify((data \ "text").asOpt[String],(data \ "locales").asOpt[Seq[String]].getOrElse(Seq.empty)))
       }.getOrElse {
         BadRequest("Expecting either a JSON or a form-url-encoded body")
@@ -190,7 +195,8 @@ class LexicalAnalysisController(las: CompoundLexicalAnalysisService, hfstlas: Co
     }
   }
 
-  def baseformGET(text: Option[String], locale: Option[Locale], segment: Boolean, depth:Int) = CORSAction { implicit request =>
+  def baseformGET(text: Option[String], locale: Option[Locale], segment: Boolean, depth:Int,pretty:Option[String]) = CORSAction { implicit request =>
+    implicit val ipretty = pretty;
     baseform(text,locale,segment,depth)
   }
 
@@ -198,9 +204,11 @@ class LexicalAnalysisController(las: CompoundLexicalAnalysisService, hfstlas: Co
     val formBody = request.body.asFormUrlEncoded;
     val jsonBody = request.body.asJson;
     formBody.map { data =>
+      implicit val ipretty = data.get("pretty").map(_.head)
       toResponse(baseform(data.get("text").map(_.head),data.get("locale").map(l => new Locale(l.head)),data.get("segment").map(s => Try(s.head.toBoolean).getOrElse(false)).getOrElse(false),data.get("depth").map(_.head.toInt).getOrElse(2)))
     }.getOrElse {
       jsonBody.map { data =>
+        implicit val ipretty = (data \ "pretty").asOpt[String]
         toResponse(baseform((data \ "text").asOpt[String],(data \ "locale").asOpt[String].map(l => new Locale(l)),(data \ "segment").asOpt[Boolean].getOrElse(false),(data \ "depth").asOpt[Int].getOrElse(2)))
       }.getOrElse {
         BadRequest("Expecting either a JSON or a form-url-encoded body")
@@ -263,7 +271,8 @@ class LexicalAnalysisController(las: CompoundLexicalAnalysisService, hfstlas: Co
     }
   }
 
-  def analyzeGET(text: Option[String], locale: Option[Locale], forms: Seq[String], segment:Boolean,depth:Int) = CORSAction { implicit request =>
+  def analyzeGET(text: Option[String], locale: Option[Locale], forms: Seq[String], segment:Boolean,depth:Int,pretty:Option[String]) = CORSAction { implicit request =>
+    implicit val ipretty = pretty;
     analyze(text,locale, forms,segment,depth)
   }
 
@@ -271,9 +280,11 @@ class LexicalAnalysisController(las: CompoundLexicalAnalysisService, hfstlas: Co
     val formBody = request.body.asFormUrlEncoded;
     val jsonBody = request.body.asJson;
     formBody.map { data =>
+      implicit val ipretty = data.get("pretty").map(_.head)
       toResponse(analyze(data.get("text").map(_.head),data.get("locale").map(l => new Locale(l.head)),data.get("forms").getOrElse(Seq.empty),data.get("segment").map(s => Try(s.head.toBoolean).getOrElse(false)).getOrElse(false),data.get("depth").map(_.head.toInt).getOrElse(2)))
     }.getOrElse {
       jsonBody.map { data =>
+        implicit val ipretty = (data \ "pretty").asOpt[String]
         toResponse(analyze((data \ "text").asOpt[String],(data \ "locale").asOpt[String].map(l => new Locale(l)),(data \ "forms").asOpt[Seq[String]].getOrElse(Seq.empty),(data \ "segment").asOpt[Boolean].getOrElse(false),(data \ "depth").asOpt[Int].getOrElse(2)))
       }.getOrElse {
         BadRequest("Expecting either a JSON or a form-url-encoded body")
@@ -309,7 +320,8 @@ class LexicalAnalysisController(las: CompoundLexicalAnalysisService, hfstlas: Co
   }
 
 
-  def inflectGET(text: Option[String], forms: Seq[String], segment: Boolean, baseform: Boolean, locale : Option[Locale]) = CORSAction { implicit request =>
+  def inflectGET(text: Option[String], forms: Seq[String], segment: Boolean, baseform: Boolean, locale : Option[Locale],pretty:Option[String]) = CORSAction { implicit request =>
+    implicit val ipretty = pretty;
     inflect(text,forms,segment,baseform,locale)
   }
 
@@ -317,9 +329,11 @@ class LexicalAnalysisController(las: CompoundLexicalAnalysisService, hfstlas: Co
     val formBody = request.body.asFormUrlEncoded;
     val jsonBody = request.body.asJson;
     formBody.map { data =>
+      implicit val ipretty = data.get("pretty").map(_.head)
       toResponse(inflect(data.get("text").map(_.head),data.get("forms").getOrElse(Seq.empty),data.get("segment").map(s => Try(s.head.toBoolean).getOrElse(false)).getOrElse(false),data.get("baseform").map(s => Try(s.head.toBoolean).getOrElse(true)).getOrElse(true),data.get("locale").map(l => new Locale(l.head))))
     }.getOrElse {
       jsonBody.map { data =>
+        implicit val ipretty = (data \ "pretty").asOpt[String]
         toResponse(inflect((data \ "text").asOpt[String],(data \ "forms").asOpt[Seq[String]].getOrElse(Seq.empty), (data \ "segment").asOpt[Boolean].getOrElse(false), (data \ "baseform").asOpt[Boolean].getOrElse(true), (data \ "locale").asOpt[String].map(l => new Locale(l))))
       }.getOrElse {
         BadRequest("Expecting either a JSON or a form-url-encoded body")
@@ -354,7 +368,8 @@ class LexicalAnalysisController(las: CompoundLexicalAnalysisService, hfstlas: Co
     }
   }
 
-  def hyphenateGET(text: Option[String], locale: Option[Locale]) = CORSAction { implicit request =>
+  def hyphenateGET(text: Option[String], locale: Option[Locale],pretty:Option[String]) = CORSAction { implicit request =>
+    implicit val ipretty = pretty;
     hyphenate(text,locale)
   }
 
@@ -362,9 +377,11 @@ class LexicalAnalysisController(las: CompoundLexicalAnalysisService, hfstlas: Co
     val formBody = request.body.asFormUrlEncoded;
     val jsonBody = request.body.asJson;
     formBody.map { data =>
+      implicit val ipretty = data.get("pretty").map(_.head)
       toResponse(hyphenate(data.get("text").map(_.head),data.get("locale").map(l => new Locale(l.head))))
     }.getOrElse {
       jsonBody.map { data =>
+        implicit val ipretty = (data \ "pretty").asOpt[String]
         toResponse(hyphenate((data \ "text").asOpt[String],(data \ "locale").asOpt[String].map(l => new Locale(l))))
       }.getOrElse {
         BadRequest("Expecting either a JSON or a form-url-encoded body")
