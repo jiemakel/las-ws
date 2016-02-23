@@ -176,17 +176,17 @@ class LexicalAnalysisController(las: CompoundLexicalAnalysisService, hfstlas: Co
     (in,out)
   }
 
-  def baseform(text: Option[String], locale: Option[Locale], segment:Boolean,depth:Int) : Either[(JsValue,String),Either[String,JsValue]] = {
+  def baseform(text: Option[String], locale: Option[Locale], segment:Boolean, guess:Boolean,depth:Int) : Either[(JsValue,String),Either[String,JsValue]] = {
     text match {
       case Some(text) =>
         locale match {
           case Some(locale) =>
-            if (hfstlas.getSupportedBaseformLocales.contains(locale)) Right(Right(Json.toJson(hfstlas.baseform(text, locale,segment,depth)))) else
-            if (las.getSupportedBaseformLocales.contains(locale)) Right(Right(Json.toJson(las.baseform(text, locale,segment)))) else Right(Left(s"Locale $locale not in the supported locales (${las.getSupportedBaseformLocales.mkString(", ")})"))
+            if (hfstlas.getSupportedBaseformLocales.contains(locale)) Right(Right(Json.toJson(hfstlas.baseform(text, locale,segment,guess,depth)))) else
+            if (las.getSupportedBaseformLocales.contains(locale)) Right(Right(Json.toJson(las.baseform(text, locale,segment,guess)))) else Right(Left(s"Locale $locale not in the supported locales (${las.getSupportedBaseformLocales.mkString(", ")})"))
           case None => getBestLang(text,las.getSupportedBaseformLocales.toSeq.map(_.toString)) match {
             case Some(lang) =>
-              if (hfstlas.getSupportedBaseformLocales.contains(locale)) Right(Right(Json.toJson(Map("locale" -> lang, "baseform" -> hfstlas.baseform(text, new Locale(lang),segment,depth)))))
-              else Right(Right(Json.toJson(Map("locale" -> lang, "baseform" -> las.baseform(text, new Locale(lang),segment)))))
+              if (hfstlas.getSupportedBaseformLocales.contains(locale)) Right(Right(Json.toJson(Map("locale" -> lang, "baseform" -> hfstlas.baseform(text, new Locale(lang),segment,guess,depth)))))
+              else Right(Right(Json.toJson(Map("locale" -> lang, "baseform" -> las.baseform(text, new Locale(lang),segment,guess)))))
             case None       => Right(Left(s"Couldn't categorize $text into any of the supported languages (${las.getSupportedBaseformLocales.mkString(", ")})"))
           }
         }
@@ -195,9 +195,9 @@ class LexicalAnalysisController(las: CompoundLexicalAnalysisService, hfstlas: Co
     }
   }
 
-  def baseformGET(text: Option[String], locale: Option[Locale], segment: Boolean, depth:Int,pretty:Option[String]) = CORSAction { implicit request =>
+  def baseformGET(text: Option[String], locale: Option[Locale], segment: Boolean, guess: Boolean, depth:Int,pretty:Option[String]) = CORSAction { implicit request =>
     implicit val ipretty = pretty;
-    baseform(text,locale,segment,depth)
+    baseform(text,locale,segment,guess,depth)
   }
 
   def baseformPOST = CORSAction { implicit request =>
@@ -205,11 +205,11 @@ class LexicalAnalysisController(las: CompoundLexicalAnalysisService, hfstlas: Co
     val jsonBody = request.body.asJson;
     formBody.map { data =>
       implicit val ipretty = data.get("pretty").map(_.head)
-      toResponse(baseform(data.get("text").map(_.head),data.get("locale").map(l => new Locale(l.head)),data.get("segment").map(s => Try(s.head.toBoolean).getOrElse(false)).getOrElse(false),data.get("depth").map(_.head.toInt).getOrElse(2)))
+      toResponse(baseform(data.get("text").map(_.head),data.get("locale").map(l => new Locale(l.head)),data.get("segment").map(s => Try(s.head.toBoolean).getOrElse(false)).getOrElse(false),data.get("guess").map(s => Try(s.head.toBoolean).getOrElse(true)).getOrElse(true),data.get("depth").map(_.head.toInt).getOrElse(2)))
     }.getOrElse {
       jsonBody.map { data =>
         implicit val ipretty = (data \ "pretty").asOpt[String]
-        toResponse(baseform((data \ "text").asOpt[String],(data \ "locale").asOpt[String].map(l => new Locale(l)),(data \ "segment").asOpt[Boolean].getOrElse(false),(data \ "depth").asOpt[Int].getOrElse(2)))
+        toResponse(baseform((data \ "text").asOpt[String],(data \ "locale").asOpt[String].map(l => new Locale(l)),(data \ "segment").asOpt[Boolean].getOrElse(false),(data \ "guess").asOpt[Boolean].getOrElse(true),(data \ "depth").asOpt[Int].getOrElse(2)))
       }.getOrElse {
         BadRequest("Expecting either a JSON or a form-url-encoded body")
       }
@@ -223,7 +223,7 @@ class LexicalAnalysisController(las: CompoundLexicalAnalysisService, hfstlas: Co
 
     //log the message to stdout and send response back to client
     val in = Iteratee.foreach[JsValue] {
-      data => channel push toWSResponse(baseform((data \ "text").asOpt[String],(data \ "locale").asOpt[String].map(l => new Locale(l)),(data \ "segment").asOpt[Boolean].getOrElse(false),(data \ "depth").asOpt[Int].getOrElse(2)))
+      data => channel push toWSResponse(baseform((data \ "text").asOpt[String],(data \ "locale").asOpt[String].map(l => new Locale(l)),(data \ "segment").asOpt[Boolean].getOrElse(false),(data \ "guess").asOpt[Boolean].getOrElse(true),(data \ "depth").asOpt[Int].getOrElse(2)))
     }
     (in,out)
   }
@@ -256,13 +256,13 @@ class LexicalAnalysisController(las: CompoundLexicalAnalysisService, hfstlas: Co
     }
   }
 
-  def analyze(text: Option[String], locale: Option[Locale], forms: Seq[String], segment:Boolean, depth: Int) : Either[(JsValue,String),Either[String,JsValue]] = {
+  def analyze(text: Option[String], locale: Option[Locale], forms: Seq[String], segment:Boolean, guess:Boolean, depth: Int) : Either[(JsValue,String),Either[String,JsValue]] = {
     text match {
       case Some(text) =>
         locale match {
-          case Some(locale) => if (hfstlas.getSupportedAnalyzeLocales.contains(locale)) Right(Right(Json.toJson(hfstlas.analyze(text, locale, forms,segment,depth).toList))) else Right(Left(s"Locale $locale not in the supported locales (${hfstlas.getSupportedAnalyzeLocales.mkString(", ")})"))
+          case Some(locale) => if (hfstlas.getSupportedAnalyzeLocales.contains(locale)) Right(Right(Json.toJson(hfstlas.analyze(text, locale, forms,segment,guess,depth).toList))) else Right(Left(s"Locale $locale not in the supported locales (${hfstlas.getSupportedAnalyzeLocales.mkString(", ")})"))
           case None => getBestLang(text,hfstlas.getSupportedAnalyzeLocales.toSeq.map(_.toString)) match {
-            case Some(lang) => Right(Right(Json.toJson(Map("locale" -> Json.toJson(lang), "analysis" -> Json.toJson(hfstlas.analyze(text, new Locale(lang), forms, segment, depth).toList)))))
+            case Some(lang) => Right(Right(Json.toJson(Map("locale" -> Json.toJson(lang), "analysis" -> Json.toJson(hfstlas.analyze(text, new Locale(lang), forms, segment, guess, depth).toList)))))
             case None       => Right(Left(s"Couldn't categorize $text into any of the supported languages (${hfstlas.getSupportedAnalyzeLocales.mkString(", ")})"))
           }
         }
@@ -271,9 +271,9 @@ class LexicalAnalysisController(las: CompoundLexicalAnalysisService, hfstlas: Co
     }
   }
 
-  def analyzeGET(text: Option[String], locale: Option[Locale], forms: Seq[String], segment:Boolean,depth:Int,pretty:Option[String]) = CORSAction { implicit request =>
+  def analyzeGET(text: Option[String], locale: Option[Locale], forms: Seq[String], segment:Boolean, guess:Boolean,depth:Int,pretty:Option[String]) = CORSAction { implicit request =>
     implicit val ipretty = pretty;
-    analyze(text,locale, forms,segment,depth)
+    analyze(text,locale, forms,segment,guess,depth)
   }
 
   def analyzePOST = CORSAction { implicit request =>
@@ -281,11 +281,11 @@ class LexicalAnalysisController(las: CompoundLexicalAnalysisService, hfstlas: Co
     val jsonBody = request.body.asJson;
     formBody.map { data =>
       implicit val ipretty = data.get("pretty").map(_.head)
-      toResponse(analyze(data.get("text").map(_.head),data.get("locale").map(l => new Locale(l.head)),data.get("forms").getOrElse(Seq.empty),data.get("segment").map(s => Try(s.head.toBoolean).getOrElse(false)).getOrElse(false),data.get("depth").map(_.head.toInt).getOrElse(2)))
+      toResponse(analyze(data.get("text").map(_.head),data.get("locale").map(l => new Locale(l.head)),data.get("forms").getOrElse(Seq.empty),data.get("segment").map(s => Try(s.head.toBoolean).getOrElse(false)).getOrElse(false),data.get("guess").map(s => Try(s.head.toBoolean).getOrElse(true)).getOrElse(true),data.get("depth").map(_.head.toInt).getOrElse(2)))
     }.getOrElse {
       jsonBody.map { data =>
         implicit val ipretty = (data \ "pretty").asOpt[String]
-        toResponse(analyze((data \ "text").asOpt[String],(data \ "locale").asOpt[String].map(l => new Locale(l)),(data \ "forms").asOpt[Seq[String]].getOrElse(Seq.empty),(data \ "segment").asOpt[Boolean].getOrElse(false),(data \ "depth").asOpt[Int].getOrElse(2)))
+        toResponse(analyze((data \ "text").asOpt[String],(data \ "locale").asOpt[String].map(l => new Locale(l)),(data \ "forms").asOpt[Seq[String]].getOrElse(Seq.empty),(data \ "segment").asOpt[Boolean].getOrElse(false),(data \ "guess").asOpt[Boolean].getOrElse(true),(data \ "depth").asOpt[Int].getOrElse(2)))
       }.getOrElse {
         BadRequest("Expecting either a JSON or a form-url-encoded body")
       }
@@ -299,18 +299,18 @@ class LexicalAnalysisController(las: CompoundLexicalAnalysisService, hfstlas: Co
 
     //log the message to stdout and send response back to client
     val in = Iteratee.foreach[JsValue] {
-      data => channel push toWSResponse(analyze((data \ "text").asOpt[String],(data \ "locale").asOpt[String].map(l => new Locale(l)),(data \ "forms").asOpt[Seq[String]].getOrElse(Seq.empty),(data \ "segment").asOpt[Boolean].getOrElse(false),(data \ "depth").asOpt[Int].getOrElse(2)))
+      data => channel push toWSResponse(analyze((data \ "text").asOpt[String],(data \ "locale").asOpt[String].map(l => new Locale(l)),(data \ "forms").asOpt[Seq[String]].getOrElse(Seq.empty),(data \ "segment").asOpt[Boolean].getOrElse(false),(data \ "guess").asOpt[Boolean].getOrElse(true),(data \ "depth").asOpt[Int].getOrElse(2)))
     }
     (in,out)
   }
 
-  def inflect(text: Option[String], forms: Seq[String], segment: Boolean, baseform: Boolean, locale : Option[Locale]) : Either[(JsValue, String),Either[String,JsValue]] = {
+  def inflect(text: Option[String], forms: Seq[String], segment: Boolean, baseform: Boolean, guess: Boolean, locale : Option[Locale]) : Either[(JsValue, String),Either[String,JsValue]] = {
     text match {
       case Some(text) =>
         locale match {
-          case Some(locale) => if (hfstlas.getSupportedInflectionLocales.contains(locale)) Right(Right(Json.toJson(hfstlas.inflect(text, forms, segment, baseform, locale)))) else Right(Left(s"Locale $locale not in the supported locales (${hfstlas.getSupportedInflectionLocales.mkString(", ")})"))
+          case Some(locale) => if (hfstlas.getSupportedInflectionLocales.contains(locale)) Right(Right(Json.toJson(hfstlas.inflect(text, forms, segment, baseform, guess, locale)))) else Right(Left(s"Locale $locale not in the supported locales (${hfstlas.getSupportedInflectionLocales.mkString(", ")})"))
           case None => getBestLang(text,hfstlas.getSupportedInflectionLocales.toSeq.map(_.toString)) match {
-            case Some(lang) => Right(Right(Json.toJson(Map("locale" -> Json.toJson(lang), "inflection" -> Json.toJson(hfstlas.inflect(text, forms, segment, baseform, new Locale(lang)))))))
+            case Some(lang) => Right(Right(Json.toJson(Map("locale" -> Json.toJson(lang), "inflection" -> Json.toJson(hfstlas.inflect(text, forms, segment, baseform, guess, new Locale(lang)))))))
             case None       => Right(Left(s"Couldn't categorize $text into any of the supported languages (${hfstlas.getSupportedInflectionLocales.mkString(", ")})"))
           }
         }
@@ -320,9 +320,9 @@ class LexicalAnalysisController(las: CompoundLexicalAnalysisService, hfstlas: Co
   }
 
 
-  def inflectGET(text: Option[String], forms: Seq[String], segment: Boolean, baseform: Boolean, locale : Option[Locale],pretty:Option[String]) = CORSAction { implicit request =>
+  def inflectGET(text: Option[String], forms: Seq[String], segment: Boolean, baseform: Boolean, guess: Boolean, locale : Option[Locale],pretty:Option[String]) = CORSAction { implicit request =>
     implicit val ipretty = pretty;
-    inflect(text,forms,segment,baseform,locale)
+    inflect(text,forms,segment,baseform,guess,locale)
   }
 
   def inflectPOST = CORSAction { implicit request =>
@@ -330,11 +330,11 @@ class LexicalAnalysisController(las: CompoundLexicalAnalysisService, hfstlas: Co
     val jsonBody = request.body.asJson;
     formBody.map { data =>
       implicit val ipretty = data.get("pretty").map(_.head)
-      toResponse(inflect(data.get("text").map(_.head),data.get("forms").getOrElse(Seq.empty),data.get("segment").map(s => Try(s.head.toBoolean).getOrElse(false)).getOrElse(false),data.get("baseform").map(s => Try(s.head.toBoolean).getOrElse(true)).getOrElse(true),data.get("locale").map(l => new Locale(l.head))))
+      toResponse(inflect(data.get("text").map(_.head),data.get("forms").getOrElse(Seq.empty),data.get("segment").map(s => Try(s.head.toBoolean).getOrElse(false)).getOrElse(false),data.get("baseform").map(s => Try(s.head.toBoolean).getOrElse(true)).getOrElse(true),data.get("guess").map(s => Try(s.head.toBoolean).getOrElse(true)).getOrElse(true),data.get("locale").map(l => new Locale(l.head))))
     }.getOrElse {
       jsonBody.map { data =>
         implicit val ipretty = (data \ "pretty").asOpt[String]
-        toResponse(inflect((data \ "text").asOpt[String],(data \ "forms").asOpt[Seq[String]].getOrElse(Seq.empty), (data \ "segment").asOpt[Boolean].getOrElse(false), (data \ "baseform").asOpt[Boolean].getOrElse(true), (data \ "locale").asOpt[String].map(l => new Locale(l))))
+        toResponse(inflect((data \ "text").asOpt[String],(data \ "forms").asOpt[Seq[String]].getOrElse(Seq.empty), (data \ "segment").asOpt[Boolean].getOrElse(false), (data \ "baseform").asOpt[Boolean].getOrElse(true), (data \ "guess").asOpt[Boolean].getOrElse(true), (data \ "locale").asOpt[String].map(l => new Locale(l))))
       }.getOrElse {
         BadRequest("Expecting either a JSON or a form-url-encoded body")
       }
@@ -348,7 +348,7 @@ class LexicalAnalysisController(las: CompoundLexicalAnalysisService, hfstlas: Co
 
     //log the message to stdout and send response back to client
     val in = Iteratee.foreach[JsValue] {
-      data => channel push toWSResponse(inflect((data \ "text").asOpt[String],(data \ "forms").asOpt[Seq[String]].getOrElse(Seq.empty), (data \ "segment").asOpt[Boolean].getOrElse(false), (data \ "baseform").asOpt[Boolean].getOrElse(true), (data \ "locale").asOpt[String].map(l => new Locale(l))))
+      data => channel push toWSResponse(inflect((data \ "text").asOpt[String],(data \ "forms").asOpt[Seq[String]].getOrElse(Seq.empty), (data \ "segment").asOpt[Boolean].getOrElse(false), (data \ "baseform").asOpt[Boolean].getOrElse(true), (data \ "guess").asOpt[Boolean].getOrElse(true), (data \ "locale").asOpt[String].map(l => new Locale(l))))
     }
     (in,out)
   }

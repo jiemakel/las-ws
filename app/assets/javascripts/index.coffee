@@ -20,10 +20,11 @@ angular.module('index',['play.routing'])
   .controller('LemmatizeCtrl', ($scope, playRoutes) ->
     $scope.text = "Albert osti fagotin ja töräytti puhkuvan melodian maakunnanvoudinvirastossa."
     $scope.depth = "1"
+    $scope.guess = true
     $scope.$watchCollection('[text,locale,segments,depth]', _.throttle(() ->
       locale = $scope.locale
       if locale=='' then locale=null
-      playRoutes.controllers.LexicalAnalysisController.baseformGET($scope.text,locale,$scope.segments, if ($scope.depth && $scope.depth!="") then $scope.depth else "1").get().success((data) ->
+      playRoutes.controllers.LexicalAnalysisController.baseformGET($scope.text,locale,$scope.segments, $scope.guess, if ($scope.depth && $scope.depth!="") then $scope.depth else "1").get().success((data) ->
         $scope.errorStatus = ''
         $scope.baseform=data
       ).error((data,status) ->
@@ -40,11 +41,12 @@ angular.module('index',['play.routing'])
     $scope.text = "Albert osti fagotin ja töräytti puhkuvan melodian."
     $scope.locale = "fi"
     $scope.forms = "V N Nom Sg, N Nom Pl, A Pos Nom Pl"
+    $scope.guess = true
     $scope.depth = "2"    
     $scope.$watchCollection('[text,locale,forms,segments,depth]', _.throttle(() ->
       locale = $scope.locale
       if locale=='' then locale=null
-      playRoutes.controllers.LexicalAnalysisController.analyzeGET($scope.text,locale,$scope.forms.split(/, */),$scope.segments,if ($scope.depth && $scope.depth!="") then $scope.depth else "2").get().success((data) ->
+      playRoutes.controllers.LexicalAnalysisController.analyzeGET($scope.text,locale,$scope.forms.split(/, */),$scope.segments,$scope.guess,if ($scope.depth && $scope.depth!="") then $scope.depth else "2").get().success((data) ->
         $scope.analysis=data
         $scope.errorStatus = ''
         dta = []
@@ -79,12 +81,13 @@ angular.module('index',['play.routing'])
   .controller('InflectionCtrl', ($scope, playRoutes) ->
     $scope.text = "Albert osti fagotin ja töräytti puhkuvan melodian."
     $scope.locale = "fi"
-    $scope.baseform=true;
+    $scope.baseform=true
+    $scope.guess=true
     $scope.forms = "V N Nom Sg, N Nom Pl, A Pos Nom Pl"
     $scope.$watchCollection('[text,locale,segments,baseform,forms]', _.throttle(() ->
       locale = $scope.locale
       if locale=='' then locale=null
-      playRoutes.controllers.LexicalAnalysisController.inflectGET($scope.text, $scope.forms.split(/, */),$scope.segments,$scope.baseform,locale).get().success((data) ->
+      playRoutes.controllers.LexicalAnalysisController.inflectGET($scope.text, $scope.forms.split(/, */),$scope.segments,$scope.baseform,$scope.guess,locale).get().success((data) ->
         $scope.inflection=data
         $scope.errorStatus = ''
       ).error((data,status) ->

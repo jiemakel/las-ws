@@ -116,7 +116,7 @@
                 <ol>
                     <li>The <a href="https://code.google.com/p/language-detection/">langdetect</a> library (locales @supportedLanguageDetectorLocales.toSeq.sorted.mkString(", ")),</li>
                     <li>custom code based on the list of cues at the <a href="http://en.wikipedia.org/wiki/Wikipedia:Language_recognition_chart">Wikipedia language recognition chart</a> (locales @supportedLanguageRecognizerLocales.toSeq.sorted.mkString(", ")), and</li>
-                    <li>finite state transducers provided by the <a href="http://hfst.sourceforge.net/">HFST</a>, <a href="https://code.google.com/p/omorfi/">Omorfi</a> and <a href="http://giellatekno.uit.no/">Giellatekno</a> projects (locales @supportedHFSTAnalyzeLocales.toSeq.sorted.mkString(", "))</li>
+                    <li>finite state transducers provided by the <a href="http://hfst.sourceforge.net/">HFST</a>, <a href="https://github.com/flammie/omorfi/">Omorfi</a> and <a href="http://giellatekno.uit.no/">Giellatekno</a> projects (locales @supportedHFSTAnalyzeLocales.toSeq.sorted.mkString(", "))</li>
                 </ol>
 
                 Where multiple sources are available for a language, they
@@ -150,12 +150,12 @@
                 Call with e.g. <a href='@controllers.routes.LexicalAnalysisController.baseformGET(Some("Albert osti fagotin ja töräytti puhkuvan melodian."),Some(new java.util.Locale("fi")))'>@controllers.routes.LexicalAnalysisController.baseformGET(Some("Albert osti fagotin ja töräytti puhkuvan melodian."),Some(new java.util.Locale("fi")))</a><br />
                 or just <a href='@controllers.routes.LexicalAnalysisController.baseformGET(Some("The quick brown fox jumps over the lazy dog"),None)'>@controllers.routes.LexicalAnalysisController.baseformGET(Some("The quick brown fox jumps over the lazy dog"),None)</a> to guess locale.<br />
                 Also available using HTTP POST with parameters given either as form-urlencoded or JSON. For intensive use, there is also a JSON-understanding <a href="http://en.wikipedia.org/wiki/WebSocket">WebSocket</a>-version at <a href="@controllers.routes.LexicalAnalysisController.baseformWS">@controllers.routes.LexicalAnalysisController.baseformWS</a>. All methods are <a href="http://en.wikipedia.org/wiki/Cross-origin_resource_sharing">CORS</a>-enabled.<br />
-                Returns results as JSON (e.g. <code>@ctrl.baseform(Some("Albert osti fagotin ja töräytti puhkuvan melodian."),Some(new java.util.Locale("fi")),false,1).right.get.right.get</code> or <code>@ctrl.baseform(Some("The quick brown fox jumps over the lazy dog"),None,false,1).right.get.right.get</code>)<br />
-                When called without parameters but with an Accept header other than text/html, returns the @((supportedSnowballLocales++supportedHFSTBaseformLocales).toSeq.distinct.size) supported locales as JSON. A boolean segment parameter can be set to segment compound words with a '#'. Also accepts an optional depth parameter of either 0 or 1 for less or more in-depth analysis (default=1). Pretty printing is enabled with the boolean parameter pretty.
+                Returns results as JSON (e.g. <code>@ctrl.baseform(Some("Albert osti fagotin ja töräytti puhkuvan melodian."),Some(new java.util.Locale("fi")),false,true,1).right.get.right.get</code> or <code>@ctrl.baseform(Some("The quick brown fox jumps over the lazy dog"),None,false,true,1).right.get.right.get</code>)<br />
+                When called without parameters but with an Accept header other than text/html, returns the @((supportedSnowballLocales++supportedHFSTBaseformLocales).toSeq.distinct.size) supported locales as JSON. A boolean segment parameter can be set to segment compound words with a '#'. The boolean parameter guess on the other hand decides whether baseforms will be guessed for unknown words or not. Also accepts an optional depth parameter of either 0 or 1 for less or more in-depth analysis (default=1). Pretty printing is enabled with the boolean parameter pretty.
             </p>
 
             <p>
-                Uses finite state transducers provided by the <a href="http://hfst.sourceforge.net/">HFST</a>, <a href="https://code.google.com/p/omorfi/">Omorfi</a> and <a href="http://giellatekno.uit.no/">Giellatekno</a> projects where available (locales @supportedHFSTBaseformLocales.toSeq.sorted.mkString(", ")). Note that the quality and scope of the lemmatization varies wildly between languages.<br />
+                Uses finite state transducers provided by the <a href="http://hfst.sourceforge.net/">HFST</a>, <a href="https://github.com/flammie/omorfi/">Omorfi</a> and <a href="http://giellatekno.uit.no/">Giellatekno</a> projects where available (locales @supportedHFSTBaseformLocales.toSeq.sorted.mkString(", ")). Note that the quality and scope of the lemmatization varies wildly between languages.<br />
                 <a href="http://snowball.tartarus.org/">Snowball stemmers</a> are used for locales @((supportedSnowballLocales.toSeq diff supportedHFSTBaseformLocales.toSeq).sorted.mkString(", ")) (not used: @((supportedSnowballLocales.toSeq intersect supportedHFSTBaseformLocales.toSeq).sorted.mkString(", ")))
             </p>
 
@@ -171,6 +171,10 @@
 			
 			<div class="checkbox">
                 <label class="control-label"><input type="checkbox" name="segments" ng-model="segments" />Segment compounds?</label>
+            </div>
+            
+            <div class="checkbox">
+                <label class="control-label"><input type="checkbox" name="guess" ng-model="guess" />Guess baseforms for unknown words?</label>
             </div>
 
             <div class="form-group">
@@ -203,14 +207,14 @@
                or just <a href='@controllers.routes.LexicalAnalysisController.analyzeGET(Some("Bier bitte"),None,List())'>@controllers.routes.LexicalAnalysisController.analyzeGET(Some("Bier bitte"),None,List())</a> to guess locale.<br />
                 Also available using HTTP POST with parameters given either as form-urlencoded or JSON. For intensive use, there is also a JSON-understanding <a href="http://en.wikipedia.org/wiki/WebSocket">WebSocket</a>-version at <a href="@controllers.routes.LexicalAnalysisController.analyzeWS">@controllers.routes.LexicalAnalysisController.analyzeWS</a>. All methods are <a href="http://en.wikipedia.org/wiki/Cross-origin_resource_sharing">CORS</a>-enabled.<br />
                Returns results as JSON, e.g.:
-               <pre class="pre-scrollable">@play.api.libs.json.Json.prettyPrint(ctrl.analyze(Some("Albert osti"),Some(new java.util.Locale("fi")),List("V N Nom Sg","N Nom Pl"),false,2).right.get.right.get)</pre> or
-               <pre class="pre-scrollable">@play.api.libs.json.Json.prettyPrint(ctrl.analyze(Some("Bier bitte"),None,List(),false,2).right.get.right.get)</pre>
-               When called without parameters but with an Accept header other than text/html, returns the @(supportedHFSTAnalyzeLocales.size) supported locales as JSON (e.g. <code>@ctrl.analyze(None,None,List(),false,2).left.get._1</code>).
-	       A boolean segment parameter can be set to segment compound words with a '#'. Also accepts an optional depth parameter of 0-2 for less or more in-depth analysis (default=2). Pretty printing is enabled with the boolean parameter pretty.
+               <pre class="pre-scrollable">@play.api.libs.json.Json.prettyPrint(ctrl.analyze(Some("Albert osti"),Some(new java.util.Locale("fi")),List("V N Nom Sg","N Nom Pl"),false,true,2).right.get.right.get)</pre> or
+               <pre class="pre-scrollable">@play.api.libs.json.Json.prettyPrint(ctrl.analyze(Some("Bier bitte"),None,List(),false,true,2).right.get.right.get)</pre>
+               When called without parameters but with an Accept header other than text/html, returns the @(supportedHFSTAnalyzeLocales.size) supported locales as JSON (e.g. <code>@ctrl.analyze(None,None,List(),false,true,2).left.get._1</code>).
+	           A boolean segment parameter can be set to segment compound words with a '#'. The boolean parameter guess on the other hand decides whether baseforms will be guessed for unknown words or not. Also accepts an optional depth parameter of 0-2 for less or more in-depth analysis (default=2). Pretty printing is enabled with the boolean parameter pretty.
                The analysis web services also supports inflection, with the same parameters as the inflection service.
            </p>
            <p>
-               Uses finite state transducers provided by the <a href="http://hfst.sourceforge.net/">HFST</a>, <a href="https://code.google.com/p/omorfi/">Omorfi</a> and <a href="http://giellatekno.uit.no/">Giellatekno</a> projects. Note that the quality and scope of analysis as well as tags returned vary wildly between languages.
+               Uses finite state transducers provided by the <a href="http://hfst.sourceforge.net/">HFST</a>, <a href="https://github.com/flammie/omorfi/">Omorfi</a> and <a href="http://giellatekno.uit.no/">Giellatekno</a> projects. Note that the quality and scope of analysis as well as tags returned vary wildly between languages.
            </p>
             <div class="form-group">
                 <label class="control-label">Test:</label> (updates dynamically)
@@ -224,6 +228,10 @@
             
 			<div class="checkbox">
                 <label class="control-label"><input type="checkbox" name="segments" ng-model="segments" />Segment compounds?</label>
+            </div>
+            
+            <div class="checkbox">
+                <label class="control-label"><input type="checkbox" name="guess" ng-model="guess" />Guess baseforms for unknown words?</label>
             </div>
             
             <div class="form-group">
@@ -261,12 +269,13 @@
                 Transforms the text given a set of inflection forms, by default also converting words not matching the inflection forms to their base form. Call with e.g. <a href='@controllers.routes.LexicalAnalysisController.inflectGET(Some("Albert osti fagotin"),List("V N Nom Sg","N Nom Pl"),true,Some(new java.util.Locale("fi")))'>@controllers.routes.LexicalAnalysisController.inflectGET(Some("Albert osti fagotin"),List("V N Nom Sg","N Nom Pl"),true,Some(new java.util.Locale("fi")))</a><br />
                 or <a href='@controllers.routes.LexicalAnalysisController.inflectGET(Some("Albert osti fagotin"),List("V N Nom Sg","N Nom Pl"),false,Some(new java.util.Locale("fi")))'>@controllers.routes.LexicalAnalysisController.inflectGET(Some("Albert osti fagotin"),List("V N Nom Sg","N Nom Pl"),false,Some(new java.util.Locale("fi")))</a><br />
                 Also available using HTTP POST with parameters given either as form-urlencoded or JSON. For intensive use, there is also a JSON-understanding <a href="http://en.wikipedia.org/wiki/WebSocket">WebSocket</a>-version at <a href="@controllers.routes.LexicalAnalysisController.inflectWS">@controllers.routes.LexicalAnalysisController.inflectWS</a>. All methods are <a href="http://en.wikipedia.org/wiki/Cross-origin_resource_sharing">CORS</a>-enabled.<br />
-                Returns results as JSON (e.g. <code>@ctrl.inflect(Some("Albert osti fagotin"),List("V N Nom Sg","N Nom Pl"),false,true,Some(new java.util.Locale("fi"))).right.get.right.get</code>)<br />
-                When called without parameters but with an Accept header other than text/html, returns the @(supportedHFSTInflectionLocales.size) supported locales as JSON (e.g. <code>@ctrl.inflect(None,Seq.empty,false,false,None).left.get._1</code>).
-		Pretty printing is enabled with the boolean parameter pretty.
+                Returns results as JSON (e.g. <code>@ctrl.inflect(Some("Albert osti fagotin"),List("V N Nom Sg","N Nom Pl"),false,true,true,Some(new java.util.Locale("fi"))).right.get.right.get</code>)<br />
+                When called without parameters but with an Accept header other than text/html, returns the @(supportedHFSTInflectionLocales.size) supported locales as JSON (e.g. <code>@ctrl.inflect(None,Seq.empty,false,false,false,None).left.get._1</code>).
+                A boolean segment parameter can be set to segment compound words with a '#'. The boolean parameter guess on the other hand decides whether baseforms will be guessed for unknown words or not.
+                The boolean baseform parameter decides whether uninflected words are returned in their baseform or original form. Pretty printing is enabled with the boolean parameter pretty.
             </p>
             <p>
-                Uses finite state transducers provided by the <a href="http://hfst.sourceforge.net/">HFST</a>, <a href="https://code.google.com/p/omorfi/">Omorfi</a> and <a href="http://giellatekno.uit.no/">Giellatekno</a> projects. Note that the inflection form syntaxes differ wildly between languages.
+                Uses finite state transducers provided by the <a href="http://hfst.sourceforge.net/">HFST</a>, <a href="https://github.com/flammie/omorfi/">Omorfi</a> and <a href="http://giellatekno.uit.no/">Giellatekno</a> projects. Note that the inflection form syntaxes differ wildly between languages.
             </p>
             <div class="form-group">
                 <label class="control-label">Test:</label> (updates dynamically)
@@ -290,6 +299,10 @@
 
             <div class="checkbox">
                 <label class="control-label"><input type="checkbox" name="baseform" ng-model="baseform" />Baseform?</label>
+            </div>
+            
+            <div class="checkbox">
+                <label class="control-label"><input type="checkbox" name="guess" ng-model="guess" />Guess baseforms for unknown words?</label>
             </div>
 
             <div class="form-group">
@@ -317,10 +330,10 @@
                 Returns results as JSON (e.g. <code>@ctrl.hyphenate(Some("Albert osti fagotin ja töräytti puhkuvan melodian."),Some(new java.util.Locale("fi"))).right.get.right.get</code> or <code>@ctrl.hyphenate(Some("ein Bier bitte"),None).right.get.right.get</code>)<br />
                 When called without parameters but with an Accept header other than text/html, returns the @(supportedHFSTHyphenationLocales.size) supported locales as JSON, e.g.:
                 <pre class="pre-scrollable">@ctrl.hyphenate(None,None).left.get._1</pre>
-		Pretty printing is enabled with the boolean parameter pretty.
+		        Pretty printing is enabled with the boolean parameter pretty.
             </p>
             <p>
-                Uses finite state transducers provided by the <a href="http://hfst.sourceforge.net/">HFST</a>, <a href="https://code.google.com/p/omorfi/">Omorfi</a> and <a href="http://giellatekno.uit.no/">Giellatekno</a> projects. Those provided by HFST have been automatically translated from the TeX CTAN distribution's hyphenation rulesets.
+                Uses finite state transducers provided by the <a href="http://hfst.sourceforge.net/">HFST</a>, <a href="https://github.com/flammie/omorfi/">Omorfi</a> and <a href="http://giellatekno.uit.no/">Giellatekno</a> projects. Those provided by HFST have been automatically translated from the TeX CTAN distribution's hyphenation rulesets.
             </p>
             <div class="form-group">
                 <label class="control-label">Test:</label> (updates dynamically)
