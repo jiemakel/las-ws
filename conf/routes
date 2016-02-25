@@ -11,7 +11,7 @@ GET     /baseform                   @controllers.LexicalAnalysisController.basef
 POST    /baseform                   @controllers.LexicalAnalysisController.baseformPOST
 GET     /baseformWS                 @controllers.LexicalAnalysisController.baseformWS
 OPTIONS /baseform                   @controllers.LexicalAnalysisController.options()
-GET		/analyze					@controllers.LexicalAnalysisController.analyzeGET(text: Option[String], locale : Option[Locale] ?= None, forms: List[String] ?= List.empty, segment : Boolean ?= false, guess : Boolean ?= true, depth : Int ?= 2,pretty:Option[String] ?= None)
+GET		/analyze					@controllers.LexicalAnalysisController.analyzeGET(text: Option[String], locale : Option[Locale] ?= None, forms: List[String] ?= List.empty, segment : Boolean ?= false, guess : Boolean ?= true, segmentGuessed : Boolean ?= false, depth : Int ?= 2,pretty:Option[String] ?= None)
 POST	/analyze					@controllers.LexicalAnalysisController.analyzePOST
 GET     /analyzeWS                  @controllers.LexicalAnalysisController.analyzeWS
 OPTIONS /analyze                    @controllers.LexicalAnalysisController.options()

@@ -42,11 +42,12 @@ angular.module('index',['play.routing'])
     $scope.locale = "fi"
     $scope.forms = "V N Nom Sg, N Nom Pl, A Pos Nom Pl"
     $scope.guess = true
+    $scope.segmentGuessed = true
     $scope.depth = "2"    
     $scope.$watchCollection('[text,locale,forms,segments,depth]', _.throttle(() ->
       locale = $scope.locale
       if locale=='' then locale=null
-      playRoutes.controllers.LexicalAnalysisController.analyzeGET($scope.text,locale,$scope.forms.split(/, */),$scope.segments,$scope.guess,if ($scope.depth && $scope.depth!="") then $scope.depth else "2").get().success((data) ->
+      playRoutes.controllers.LexicalAnalysisController.analyzeGET($scope.text,locale,$scope.forms.split(/, */),$scope.segments,$scope.guess,$scope.segmentGuessed,if ($scope.depth && $scope.depth!="") then $scope.depth else "2").get().success((data) ->
         $scope.analysis=data
         $scope.errorStatus = ''
         dta = []

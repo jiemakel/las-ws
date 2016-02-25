@@ -207,9 +207,9 @@
                or just <a href='@controllers.routes.LexicalAnalysisController.analyzeGET(Some("Bier bitte"),None,List())'>@controllers.routes.LexicalAnalysisController.analyzeGET(Some("Bier bitte"),None,List())</a> to guess locale.<br />
                 Also available using HTTP POST with parameters given either as form-urlencoded or JSON. For intensive use, there is also a JSON-understanding <a href="http://en.wikipedia.org/wiki/WebSocket">WebSocket</a>-version at <a href="@controllers.routes.LexicalAnalysisController.analyzeWS">@controllers.routes.LexicalAnalysisController.analyzeWS</a>. All methods are <a href="http://en.wikipedia.org/wiki/Cross-origin_resource_sharing">CORS</a>-enabled.<br />
                Returns results as JSON, e.g.:
-               <pre class="pre-scrollable">@play.api.libs.json.Json.prettyPrint(ctrl.analyze(Some("Albert osti"),Some(new java.util.Locale("fi")),List("V N Nom Sg","N Nom Pl"),false,true,2).right.get.right.get)</pre> or
-               <pre class="pre-scrollable">@play.api.libs.json.Json.prettyPrint(ctrl.analyze(Some("Bier bitte"),None,List(),false,true,2).right.get.right.get)</pre>
-               When called without parameters but with an Accept header other than text/html, returns the @(supportedHFSTAnalyzeLocales.size) supported locales as JSON (e.g. <code>@ctrl.analyze(None,None,List(),false,true,2).left.get._1</code>).
+               <pre class="pre-scrollable">@play.api.libs.json.Json.prettyPrint(ctrl.analyze(Some("Albert osti"),Some(new java.util.Locale("fi")),List("V N Nom Sg","N Nom Pl"),false,true,true,2).right.get.right.get)</pre> or
+               <pre class="pre-scrollable">@play.api.libs.json.Json.prettyPrint(ctrl.analyze(Some("Bier bitte"),None,List(),false,true,true,2).right.get.right.get)</pre>
+               When called without parameters but with an Accept header other than text/html, returns the @(supportedHFSTAnalyzeLocales.size) supported locales as JSON (e.g. <code>@ctrl.analyze(None,None,List(),false,true,true,2).left.get._1</code>).
 	           A boolean segment parameter can be set to segment compound words with a '#'. The boolean parameter guess on the other hand decides whether baseforms will be guessed for unknown words or not. Also accepts an optional depth parameter of 0-2 for less or more in-depth analysis (default=2). Pretty printing is enabled with the boolean parameter pretty.
                The analysis web services also supports inflection, with the same parameters as the inflection service.
            </p>
@@ -227,11 +227,15 @@
             </div>
             
 			<div class="checkbox">
-                <label class="control-label"><input type="checkbox" name="segments" ng-model="segments" />Segment compounds?</label>
+                <label class="control-label"><input type="checkbox" name="segments" ng-model="segments" />Baseform compound segments?</label>
             </div>
             
             <div class="checkbox">
                 <label class="control-label"><input type="checkbox" name="guess" ng-model="guess" />Guess baseforms for unknown words?</label>
+            </div>
+
+            <div class="checkbox">
+                <label class="control-label"><input type="checkbox" name="segmentGuessed" ng-model="guess" />Try to segment guessed words (resource intensive)</label>
             </div>
             
             <div class="form-group">
