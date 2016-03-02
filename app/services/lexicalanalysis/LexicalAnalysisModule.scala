@@ -4,13 +4,18 @@
 package services.lexicalanalysis
 
 import com.softwaremill.macwire.MacwireMacros._
+import scala.collection.convert.WrapAsScala._
+import scala.collection.convert.WrapAsJava._
+
 import fi.seco.lexical.CompoundLexicalAnalysisService
 import fi.seco.lexical.LanguageRecognizer
 import fi.seco.lexical.SnowballLexicalAnalysisService
-import com.cybozu.labs.langdetect.Detector
-import scala.util.Try
 import com.typesafe.scalalogging.LazyLogging
 import fi.seco.lexical.combined.CombinedLexicalAnalysisService
+import com.optimaize.langdetect.profiles.LanguageProfileReader
+import com.optimaize.langdetect.LanguageDetectorBuilder
+import com.optimaize.langdetect.text.CommonTextObjectFactories
+import com.optimaize.langdetect.ngram.NgramExtractors
 
 /**
  * @author jiemakel
@@ -24,11 +29,9 @@ trait LexicalAnalysisModule {
 }
 
 object LanguageDetector extends LazyLogging {
-  def apply() = com.cybozu.labs.langdetect.DetectorFactory.create()
-  val supportedLanguages = Array("af","am","ar","az","be","bg","bn","bo","ca","cs","cy","da","de","dv","el","en","es","et","eu","fa","fi","fo","fr","ga","gn","gu","he","hi","hr","hu","hy","id","is","it","ja","jv","ka","kk","km","kn","ko","ky","lb","lij","ln","lt","lv","mi","mk","ml", "mn", "mr", "mt", "my", "ne", "nl", "no", "os", "pa", "pl", "pnb", "pt", "qu", "ro", "si", "sk", "so", "sq", "sr", "sv", "sw", "ta", "te", "th", "tk", "tl", "tr", "tt", "ug", "uk", "ur", "uz", "vi", "yi", "yo", "zh-cn", "zh-tw")
-  try {
-    com.cybozu.labs.langdetect.DetectorFactory.loadProfiles(supportedLanguages:_*)
-  } catch {
-    case e: Exception => logger.warn("Couldn't load language profiles",e)
-  }
+  val languageProfiles = new LanguageProfileReader().readAllBuiltIn()
+  val supportedLanguages = languageProfiles.map(_.getLocale.toString())
+  val detector = LanguageDetectorBuilder.create(NgramExtractors.standard()).withProfiles(languageProfiles).build()
+  val textObjectFactory = CommonTextObjectFactories.forDetectingOnLargeText()
+  def apply(text: String) = detector.getProbabilities(textObjectFactory.forText(text))
 }

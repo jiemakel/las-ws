@@ -114,7 +114,7 @@
             <p>
                 In total, the service supports @((supportedLanguageDetectorLocales ++ supportedLanguageRecognizerLocales ++ supportedHFSTAnalyzeLocales.map(_.toString)).toSeq.sorted.distinct.size) locales, combining results from three sources:
                 <ol>
-                    <li>The <a href="https://code.google.com/p/language-detection/">langdetect</a> library (locales @supportedLanguageDetectorLocales.toSeq.sorted.mkString(", ")),</li>
+                    <li>The <a href="https://github.com/optimaize/language-detector">language-detector</a> library (locales @supportedLanguageDetectorLocales.toSeq.sorted.mkString(", ")),</li>
                     <li>custom code based on the list of cues at the <a href="http://en.wikipedia.org/wiki/Wikipedia:Language_recognition_chart">Wikipedia language recognition chart</a> (locales @supportedLanguageRecognizerLocales.toSeq.sorted.mkString(", ")), and</li>
                     <li>finite state transducers provided by the <a href="http://hfst.sourceforge.net/">HFST</a>, <a href="https://github.com/flammie/omorfi/">Omorfi</a> and <a href="http://giellatekno.uit.no/">Giellatekno</a> projects (locales @supportedHFSTAnalyzeLocales.toSeq.sorted.mkString(", "))</li>
                 </ol>
