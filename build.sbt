@@ -15,7 +15,7 @@ libraryDependencies ++= Seq(
     "org.webjars" % "angularjs" % "1.2.0-rc.3",
     "org.webjars" % "angular-ui-router" % "0.2.0",
     "com.softwaremill.macwire" %% "macros" % "0.8.0",
-    "fi.seco" % "lexicalanalysis" % "1.4.1",
+    "fi.seco" % "lexicalanalysis" % "1.4.9",
     "com.optimaize.languagedetector" % "language-detector" % "0.5",
     //"com.cybozu.labs" % "langdetect" % "1.2.2" exclude("net.arnx.jsonic", "jsonic"),
     //"net.arnx" % "jsonic" % "1.3.0", //langdetect pulls in ancient unavailable version
@@ -29,8 +29,6 @@ resolvers ++= Seq(
 )
 
 routesImport ++= Seq("binders.Binders._","java.util.Locale")
-
-net.virtualvoid.sbt.graph.Plugin.graphSettings
 
 scalacOptions += "-target:jvm-1.7"
 

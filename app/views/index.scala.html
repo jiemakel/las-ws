@@ -3,7 +3,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>SeCo Lexical Analysis Services</title>
+    <title>SeCo Language Analysis Services</title>
     <link rel='stylesheet' href='@routes.WebJarAssets.at(WebJarAssets.locate(helper.assetMode("bootstrap.css")("bootstrap.min.css")()))'>
     <link rel='stylesheet' href='@routes.Assets.at("stylesheets/main.css")'>
     <script type='text/javascript' src='@routes.LexicalAnalysisController.javascriptRoutes'></script>
@@ -60,7 +60,7 @@
 <a href="https://github.com/jiemakel/seco-lexicalanalysis-play"><img style="position: absolute; top: 50px; right: 0; border: 0;" src="https://camo.githubusercontent.com/38ef81f8aca64bb9a64448d0d70f1308ef5341ab/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f6461726b626c75655f3132313632312e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png"></a>
 <div id="nav" class="navbar navbar-default navbar-fixed-top">
     <div class="navbar-header">
-        <span class="navbar-brand"><a href="http://www.seco.tkk.fi/"><img src='@routes.Assets.at("images/secologo-small.png")'></a> <a id="titleLink" href="#">Lexical Analysis Services</a></span>
+        <span class="navbar-brand"><a href="http://www.seco.tkk.fi/"><img src='@routes.Assets.at("images/secologo-small.png")'></a> <a id="titleLink" href="#">Language Analysis Services</a></span>
     </div>
     <!-- Collect the nav links, forms, and other content for toggling -->
     <div class="collapse navbar-collapse navbar-ex1-collapse">
@@ -79,7 +79,7 @@
             <div class="pull-left">
             <a href="http://www.seco.tkk.fi/"><img class="img-responsive" style="margin-right:20px;margin-top:20px" src='@routes.Assets.at("images/secologo.png")'></a>
             </div>
-            <h1><a href="http://www.seco.tkk.fi/">SeCo</a> Lexical Analysis Services</h1>
+            <h1><a href="http://www.seco.tkk.fi/">SeCo</a> Language Analysis Services</h1>
             <p>
                 We provide the following JSON-returning Web Services:
             </p>
@@ -150,7 +150,7 @@
                 Call with e.g. <a href='@controllers.routes.LexicalAnalysisController.baseformGET(Some("Albert osti fagotin ja töräytti puhkuvan melodian."),Some(new java.util.Locale("fi")))'>@controllers.routes.LexicalAnalysisController.baseformGET(Some("Albert osti fagotin ja töräytti puhkuvan melodian."),Some(new java.util.Locale("fi")))</a><br />
                 or just <a href='@controllers.routes.LexicalAnalysisController.baseformGET(Some("The quick brown fox jumps over the lazy dog"),None)'>@controllers.routes.LexicalAnalysisController.baseformGET(Some("The quick brown fox jumps over the lazy dog"),None)</a> to guess locale.<br />
                 Also available using HTTP POST with parameters given either as form-urlencoded or JSON. For intensive use, there is also a JSON-understanding <a href="http://en.wikipedia.org/wiki/WebSocket">WebSocket</a>-version at <a href="@controllers.routes.LexicalAnalysisController.baseformWS">@controllers.routes.LexicalAnalysisController.baseformWS</a>. All methods are <a href="http://en.wikipedia.org/wiki/Cross-origin_resource_sharing">CORS</a>-enabled.<br />
-                Returns results as JSON (e.g. <code>@ctrl.baseform(Some("Albert osti fagotin ja töräytti puhkuvan melodian."),Some(new java.util.Locale("fi")),false,true,1).right.get.right.get</code> or <code>@ctrl.baseform(Some("The quick brown fox jumps over the lazy dog"),None,false,true,1).right.get.right.get</code>)<br />
+                Returns results as JSON (e.g. <code>@ctrl.baseform(Some("Albert osti fagotin ja töräytti puhkuvan melodian."),Some(new java.util.Locale("fi")),false,true,0,1).right.get.right.get</code> or <code>@ctrl.baseform(Some("The quick brown fox jumps over the lazy dog"),None,false,true,0,1).right.get.right.get</code>)<br />
                 When called without parameters but with an Accept header other than text/html, returns the @((supportedSnowballLocales++supportedHFSTBaseformLocales).toSeq.distinct.size) supported locales as JSON. A boolean segment parameter can be set to segment compound words with a '#'. The boolean parameter guess on the other hand decides whether baseforms will be guessed for unknown words or not. Also accepts an optional depth parameter of either 0 or 1 for less or more in-depth analysis (default=1). Pretty printing is enabled with the boolean parameter pretty.
             </p>
 
@@ -176,6 +176,13 @@
             <div class="checkbox">
                 <label class="control-label"><input type="checkbox" name="guess" ng-model="guess" />Guess baseforms for unknown words?</label>
             </div>
+
+            <div class="form-group">
+                <label class="control-label">Maximum Edit Distance:</label>
+                <div class="controls">
+                    <input type="text" name="maxEditDistance" class="form-control" ng-model="maxEditDistance" />
+                </div>
+            </div>            
 
             <div class="form-group">
                 <label class="control-label">Depth:</label>
@@ -207,9 +214,9 @@
                or just <a href='@controllers.routes.LexicalAnalysisController.analyzeGET(Some("Bier bitte"),None,List())'>@controllers.routes.LexicalAnalysisController.analyzeGET(Some("Bier bitte"),None,List())</a> to guess locale.<br />
                 Also available using HTTP POST with parameters given either as form-urlencoded or JSON. For intensive use, there is also a JSON-understanding <a href="http://en.wikipedia.org/wiki/WebSocket">WebSocket</a>-version at <a href="@controllers.routes.LexicalAnalysisController.analyzeWS">@controllers.routes.LexicalAnalysisController.analyzeWS</a>. All methods are <a href="http://en.wikipedia.org/wiki/Cross-origin_resource_sharing">CORS</a>-enabled.<br />
                Returns results as JSON, e.g.:
-               <pre class="pre-scrollable">@play.api.libs.json.Json.prettyPrint(ctrl.analyze(Some("Albert osti"),Some(new java.util.Locale("fi")),List("V N Nom Sg","N Nom Pl"),false,true,true,2).right.get.right.get)</pre> or
-               <pre class="pre-scrollable">@play.api.libs.json.Json.prettyPrint(ctrl.analyze(Some("Bier bitte"),None,List(),false,true,true,2).right.get.right.get)</pre>
-               When called without parameters but with an Accept header other than text/html, returns the @(supportedHFSTAnalyzeLocales.size) supported locales as JSON (e.g. <code>@ctrl.analyze(None,None,List(),false,true,true,2).left.get._1</code>).
+               <pre class="pre-scrollable">@play.api.libs.json.Json.prettyPrint(ctrl.analyze(Some("Albert osti"),Some(new java.util.Locale("fi")),List("V N Nom Sg","N Nom Pl"),false,true,true,0,2).right.get.right.get)</pre> or
+               <pre class="pre-scrollable">@play.api.libs.json.Json.prettyPrint(ctrl.analyze(Some("Bier bitte"),None,List(),false,true,true,0,2).right.get.right.get)</pre>
+               When called without parameters but with an Accept header other than text/html, returns the @(supportedHFSTAnalyzeLocales.size) supported locales as JSON (e.g. <code>@ctrl.analyze(None,None,List(),false,true,true,0,2).left.get._1</code>).
 	           A boolean segment parameter can be set to segment compound words with a '#'. The boolean parameter guess on the other hand decides whether baseforms will be guessed for unknown words or not. Also accepts an optional depth parameter of 0-2 for less or more in-depth analysis (default=2). Pretty printing is enabled with the boolean parameter pretty.
                The analysis web services also supports inflection, with the same parameters as the inflection service.
            </p>
@@ -237,6 +244,13 @@
             <div class="checkbox">
                 <label class="control-label"><input type="checkbox" name="segmentGuessed" ng-model="guess" />Try to segment guessed words (resource intensive)</label>
             </div>
+            
+            <div class="form-group">
+                <label class="control-label">Maximum Edit Distance:</label>
+                <div class="controls">
+                    <input type="text" name="maxEditDistance" class="form-control" ng-model="maxEditDistance" />
+                </div>
+            </div>            
             
             <div class="form-group">
                 <label class="control-label">Depth:</label>
@@ -273,8 +287,8 @@
                 Transforms the text given a set of inflection forms, by default also converting words not matching the inflection forms to their base form. Call with e.g. <a href='@controllers.routes.LexicalAnalysisController.inflectGET(Some("Albert osti fagotin"),List("V N Nom Sg","N Nom Pl"),true,Some(new java.util.Locale("fi")))'>@controllers.routes.LexicalAnalysisController.inflectGET(Some("Albert osti fagotin"),List("V N Nom Sg","N Nom Pl"),true,Some(new java.util.Locale("fi")))</a><br />
                 or <a href='@controllers.routes.LexicalAnalysisController.inflectGET(Some("Albert osti fagotin"),List("V N Nom Sg","N Nom Pl"),false,Some(new java.util.Locale("fi")))'>@controllers.routes.LexicalAnalysisController.inflectGET(Some("Albert osti fagotin"),List("V N Nom Sg","N Nom Pl"),false,Some(new java.util.Locale("fi")))</a><br />
                 Also available using HTTP POST with parameters given either as form-urlencoded or JSON. For intensive use, there is also a JSON-understanding <a href="http://en.wikipedia.org/wiki/WebSocket">WebSocket</a>-version at <a href="@controllers.routes.LexicalAnalysisController.inflectWS">@controllers.routes.LexicalAnalysisController.inflectWS</a>. All methods are <a href="http://en.wikipedia.org/wiki/Cross-origin_resource_sharing">CORS</a>-enabled.<br />
-                Returns results as JSON (e.g. <code>@ctrl.inflect(Some("Albert osti fagotin"),List("V N Nom Sg","N Nom Pl"),false,true,true,Some(new java.util.Locale("fi"))).right.get.right.get</code>)<br />
-                When called without parameters but with an Accept header other than text/html, returns the @(supportedHFSTInflectionLocales.size) supported locales as JSON (e.g. <code>@ctrl.inflect(None,Seq.empty,false,false,false,None).left.get._1</code>).
+                Returns results as JSON (e.g. <code>@ctrl.inflect(Some("Albert osti fagotin"),List("V N Nom Sg","N Nom Pl"),false,true,true,0,Some(new java.util.Locale("fi"))).right.get.right.get</code>)<br />
+                When called without parameters but with an Accept header other than text/html, returns the @(supportedHFSTInflectionLocales.size) supported locales as JSON (e.g. <code>@ctrl.inflect(None,Seq.empty,false,false,false,0,None).left.get._1</code>).
                 A boolean segment parameter can be set to segment compound words with a '#'. The boolean parameter guess on the other hand decides whether baseforms will be guessed for unknown words or not.
                 The boolean baseform parameter decides whether uninflected words are returned in their baseform or original form. Pretty printing is enabled with the boolean parameter pretty.
             </p>
@@ -308,7 +322,14 @@
             <div class="checkbox">
                 <label class="control-label"><input type="checkbox" name="guess" ng-model="guess" />Guess baseforms for unknown words?</label>
             </div>
-
+            
+            <div class="form-group">
+                <label class="control-label">Maximum Edit Distance:</label>
+                <div class="controls">
+                    <input type="text" name="maxEditDistance" class="form-control" ng-model="maxEditDistance" />
+                </div>
+            </div>            
+            
             <div class="form-group">
                 <label class="control-label">Locale:</label>
                 <div class="controls">

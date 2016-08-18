@@ -9,8 +9,6 @@ resolvers ++= Seq("Typesafe repository" at "http://repo.typesafe.com/typesafe/re
 // Use the Play sbt plugin for Play projects
 addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.3.8")
 
-addSbtPlugin("net.virtual-void" % "sbt-dependency-graph" % "0.7.4")
-
 addSbtPlugin("com.typesafe.sbt" % "sbt-coffeescript" % "1.0.0")
 
 addSbtPlugin("com.typesafe.sbt" % "sbt-less" % "1.0.0")

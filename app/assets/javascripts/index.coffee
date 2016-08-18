@@ -24,7 +24,7 @@ angular.module('index',['play.routing'])
     $scope.$watchCollection('[text,locale,segments,depth]', _.throttle(() ->
       locale = $scope.locale
       if locale=='' then locale=null
-      playRoutes.controllers.LexicalAnalysisController.baseformGET($scope.text,locale,$scope.segments, $scope.guess, if ($scope.depth && $scope.depth!="") then $scope.depth else "1").get().success((data) ->
+      playRoutes.controllers.LexicalAnalysisController.baseformGET($scope.text,locale,$scope.segments, $scope.guess, (if ($scope.maxEditDistance && $scope.maxEditDistance!="") then $scope.maxEditDistance else "0"), if ($scope.depth && $scope.depth!="") then $scope.depth else "1").get().success((data) ->
         $scope.errorStatus = ''
         $scope.baseform=data
       ).error((data,status) ->
@@ -47,7 +47,7 @@ angular.module('index',['play.routing'])
     $scope.$watchCollection('[text,locale,forms,segments,depth]', _.throttle(() ->
       locale = $scope.locale
       if locale=='' then locale=null
-      playRoutes.controllers.LexicalAnalysisController.analyzeGET($scope.text,locale,$scope.forms.split(/, */),$scope.segments,$scope.guess,$scope.segmentGuessed,if ($scope.depth && $scope.depth!="") then $scope.depth else "2").get().success((data) ->
+      playRoutes.controllers.LexicalAnalysisController.analyzeGET($scope.text,locale,$scope.forms.split(/, */),$scope.segments,$scope.guess,$scope.segmentGuessed, (if ($scope.maxEditDistance && $scope.maxEditDistance!="") then $scope.maxEditDistance else "0"),if ($scope.depth && $scope.depth!="") then $scope.depth else "2").get().success((data) ->
         $scope.analysis=data
         $scope.errorStatus = ''
         dta = []
@@ -88,7 +88,7 @@ angular.module('index',['play.routing'])
     $scope.$watchCollection('[text,locale,segments,baseform,forms]', _.throttle(() ->
       locale = $scope.locale
       if locale=='' then locale=null
-      playRoutes.controllers.LexicalAnalysisController.inflectGET($scope.text, $scope.forms.split(/, */),$scope.segments,$scope.baseform,$scope.guess,locale).get().success((data) ->
+      playRoutes.controllers.LexicalAnalysisController.inflectGET($scope.text, $scope.forms.split(/, */),$scope.segments,$scope.baseform,$scope.guess, (if ($scope.maxEditDistance && $scope.maxEditDistance!="") then $scope.maxEditDistance else "0"),locale).get().success((data) ->
         $scope.inflection=data
         $scope.errorStatus = ''
       ).error((data,status) ->
