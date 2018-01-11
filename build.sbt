@@ -1,12 +1,32 @@
 import play.PlayImport.PlayKeys._
 
-name := """lexicalanalysis-play"""
+name := """las-ws"""
 
 version := "1.1"
 
-scalaVersion := "2.11.8"
+scalaVersion := "2.11.12"
 
-lazy val root = (project in file(".")).enablePlugins(PlayScala)
+javaOptions in Universal += "-J-Xmx4G"
+
+lazy val root = (project in file(".")).enablePlugins(
+  PlayScala,
+  SystemdPlugin,
+  DockerPlugin,
+  AshScriptPlugin)
+
+maintainer := "Eetu Mäkelä <eetu.makela@helsinki.fi>"
+
+packageSummary := "las-ws"
+
+packageDescription := "Language analysis web service"
+
+sources in (Compile, doc) := Seq.empty
+
+publishArtifact in (Compile, packageDoc) := false
+
+dockerBaseImage := "openjdk:alpine"
+
+dockerExposedPorts in Docker := Seq(9000, 9443)
 
 libraryDependencies ++= Seq(
     "org.webjars" %% "webjars-play" % "2.3.0",
@@ -15,7 +35,9 @@ libraryDependencies ++= Seq(
     "org.webjars" % "angularjs" % "1.2.0-rc.3",
     "org.webjars" % "angular-ui-router" % "0.2.0",
     "com.softwaremill.macwire" %% "macros" % "0.8.0",
-    "fi.seco" % "lexicalanalysis" % "1.5.11",
+    "fi.seco" % "lexicalanalysis" % "1.5.14",
+    "fi.seco" % "lexicalanalysis-resources-fi-complete" % "1.5.14",
+    "fi.seco" % "lexicalanalysis-resources-other" % "1.5.14",
     "com.optimaize.languagedetector" % "language-detector" % "0.5",
     //"com.cybozu.labs" % "langdetect" % "1.2.2" exclude("net.arnx.jsonic", "jsonic"),
     //"net.arnx" % "jsonic" % "1.3.0", //langdetect pulls in ancient unavailable version
@@ -30,6 +52,3 @@ resolvers ++= Seq(
 
 routesImport ++= Seq("binders.Binders._","java.util.Locale")
 
-scalacOptions += "-target:jvm-1.7"
-
-javacOptions ++= Seq("-source", "1.7", "-target", "1.7")
