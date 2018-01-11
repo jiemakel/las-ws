@@ -28,6 +28,10 @@ dockerBaseImage := "openjdk:alpine"
 
 dockerExposedPorts in Docker := Seq(9000, 9443)
 
+dockerUpdateLatest := true
+
+dockerUsername := Some("jiemakel")
+
 libraryDependencies ++= Seq(
     "org.webjars" %% "webjars-play" % "2.3.0",
     "org.webjars" % "bootstrap" % "3.0.0",
