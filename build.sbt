@@ -43,6 +43,8 @@ dockerBaseImage := "openjdk:alpine"
 
 dockerExposedPorts in Docker := Seq(9000, 9443)
 
+dockerExposedVolumes := Seq("/opt/docker/logs")
+
 dockerUsername := Some("jiemakel")
 
 dockerBuildOptions ++= {
