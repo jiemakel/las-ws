@@ -7,6 +7,9 @@ SeCo lexical analysis services published as a web service using the Scala Play f
 
 For more information, see the description associated with the [command line version of the tool](https://github.com/jiemakel/las/).
 
-Needs https://github.com/jiemakel/seco-lexicalanalysis/ & https://github.com/jiemakel/seco-hfst/
+Needs https://github.com/jiemakel/seco-lexicalanalysis/ & https://github.com/jiemakel/seco-hfst/.
+
+For pre-built Docker images, see https://hub.docker.com/r/jiemakel/las-ws/
+
 
 
